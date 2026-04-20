@@ -1,0 +1,25 @@
+agents:
+  - id: orchestrator
+    name: Orchestrator
+    description: Main AI assistant — handles general queries, delegates to specialists
+    model: claude-sonnet-4-6
+
+  - id: comms
+    name: Comms Agent
+    description: Handles communication tasks — emails, messages, social media drafts
+    model: claude-sonnet-4-6
+
+  - id: content
+    name: Content Agent
+    description: Creates written content — articles, summaries, reports, documentation
+    model: claude-sonnet-4-6
+
+  - id: ops
+    name: Ops Agent
+    description: Manages operations — system tasks, file management, automation
+    model: claude-sonnet-4-6
+
+  - id: research
+    name: Research Agent
+    description: Conducts deep research — web search, analysis, fact-finding
+    model: claude-sonnet-4-6

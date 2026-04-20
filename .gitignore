@@ -58,3 +58,11 @@ mini-swe-agent/
 # Nix
 .direnv/
 result
+
+# ClaudeClaw OS
+dist/
+store/
+workspace/
+agents/*/workspace/
+warroom/__pycache__/
+warroom/*.pyc

@@ -1,0 +1,12 @@
+uvicorn[standard]
+fastapi
+websockets
+httpx
+python-dotenv
+
+# Pipecat — real-time voice pipeline (production mode)
+# Pin to 0.x series; 1.0.0 changed Gemini Live API incompatibly
+pipecat-ai[google,silero,cartesia,deepgram]>=0.0.108,<1.0.0
+
+# Pipecat serialization
+protobuf>=4.25
