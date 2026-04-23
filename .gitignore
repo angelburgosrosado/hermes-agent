@@ -66,3 +66,14 @@ workspace/
 agents/*/workspace/
 warroom/__pycache__/
 warroom/*.pyc
+
+# Command Center (code checked in; venv + user data ignored)
+commandcenter/venv/
+commandcenter/__pycache__/
+commandcenter/audio/
+commandcenter/captures/
+commandcenter/screenshots/
+commandcenter/exports/
+commandcenter/tasks/
+commandcenter/ideas/
+commandcenter/projects/

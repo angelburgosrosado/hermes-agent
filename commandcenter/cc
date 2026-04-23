@@ -1,0 +1,660 @@
+#!/bin/bash
+# ═══════════════════════════════════════════════════════════════════════════════
+# Command Center CLI v2.0 - Full Hermes Integration
+# Quick capture, tasks, LLM queries, agent spawning, and more
+# ═══════════════════════════════════════════════════════════════════════════════
+
+CC_CODE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CC_DIR="${CC_DATA_DIR:-$HOME/CommandCenter}"
+HERMES_DIR="$HOME/.hermes"
+AUDIO_DIR="$CC_DIR/audio"
+SCREENSHOTS_DIR="$CC_DIR/screenshots"
+CAPTURES_DIR="$CC_DIR/captures"
+TASKS_FILE="$CC_DIR/tasks/tasks.json"
+IDEAS_FILE="$CC_DIR/ideas/ideas.json"
+
+# Colors
+GOLD='\033[0;33m'
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+RED='\033[0;31m'
+CYAN='\033[0;36m'
+NC='\033[0m' # No Color
+BOLD='\033[1m'
+
+# Default model for local queries
+DEFAULT_MODEL="${CC_DEFAULT_MODEL:-gemma4:31b}"
+OLLAMA_URL="${OLLAMA_URL:-http://localhost:11434}"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# HELPER FUNCTIONS
+# ═══════════════════════════════════════════════════════════════════════════════
+
+header() {
+    echo -e "${GOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${GOLD}${BOLD}$1${NC}"
+    echo -e "${GOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+}
+
+success() {
+    echo -e "${GREEN}✅ $1${NC}"
+}
+
+info() {
+    echo -e "${BLUE}ℹ️  $1${NC}"
+}
+
+error() {
+    echo -e "${RED}❌ $1${NC}"
+}
+
+# Ensure directories exist
+mkdir -p "$AUDIO_DIR" "$SCREENSHOTS_DIR" "$CAPTURES_DIR" "$CC_DIR/tasks" "$CC_DIR/ideas" "$CC_DIR/agents"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# MAIN COMMAND SWITCH
+# ═══════════════════════════════════════════════════════════════════════════════
+
+case "$1" in
+
+# ───────────────────────────────────────────────────────────────────────────────
+# AUDIO CAPTURE
+# ───────────────────────────────────────────────────────────────────────────────
+voice|v|audio|a)
+    DURATION="${2:-10}"
+    TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+    FILEPATH="$AUDIO_DIR/voice_memo_$TIMESTAMP.wav"
+    
+    header "🎙️ Voice Memo"
+    echo -e "${CYAN}Recording for $DURATION seconds...${NC}"
+    
+    # Use ffmpeg for recording (macOS)
+    ffmpeg -f avfoundation -i ":0" -t "$DURATION" -ar 16000 -ac 1 "$FILEPATH" -y 2>/dev/null
+    
+    echo -e "${CYAN}📝 Transcribing with Whisper...${NC}"
+    whisper "$FILEPATH" --model small --language en --output_format txt --output_dir "$AUDIO_DIR" 2>/dev/null
+    
+    TXT_FILE="${FILEPATH%.wav}.txt"
+    if [ -f "$TXT_FILE" ]; then
+        echo ""
+        header "📄 Transcript"
+        cat "$TXT_FILE"
+        echo ""
+    fi
+    success "Saved: $FILEPATH"
+    
+    # If --hermes flag, process with Hermes
+    if [[ "$3" == "--hermes" ]] || [[ "$3" == "-h" ]]; then
+        echo ""
+        info "Processing with Hermes..."
+        TRANSCRIPT=$(cat "$TXT_FILE")
+        hermes "Analyze this voice memo and extract key points: $TRANSCRIPT"
+    fi
+    ;;
+
+# ───────────────────────────────────────────────────────────────────────────────
+# SCREENSHOT
+# ───────────────────────────────────────────────────────────────────────────────
+screen|s|screenshot)
+    TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+    FILEPATH="$SCREENSHOTS_DIR/screenshot_$TIMESTAMP.png"
+    
+    if [ "$2" = "-i" ] || [ "$2" = "--interactive" ]; then
+        info "Click and drag to select area..."
+        screencapture -i "$FILEPATH"
+    elif [ "$2" = "-w" ] || [ "$2" = "--window" ]; then
+        info "Click on a window to capture..."
+        screencapture -iw "$FILEPATH"
+    else
+        screencapture -x "$FILEPATH"
+    fi
+    
+    if [ -f "$FILEPATH" ]; then
+        success "Screenshot saved: $FILEPATH"
+        [ "$3" = "-o" ] || [ "$2" = "-o" ] && open "$FILEPATH"
+    fi
+    ;;
+
+# ───────────────────────────────────────────────────────────────────────────────
+# SCREEN RECORDING
+# ───────────────────────────────────────────────────────────────────────────────
+record|r)
+    TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+    FILEPATH="$CAPTURES_DIR/recording_$TIMESTAMP.mov"
+    
+    header "🎬 Screen Recording"
+    info "Press Cmd+Ctrl+Esc to stop recording"
+    screencapture -v "$FILEPATH"
+    success "Recording saved: $FILEPATH"
+    ;;
+
+# ───────────────────────────────────────────────────────────────────────────────
+# QUICK TASK
+# ───────────────────────────────────────────────────────────────────────────────
+task|t)
+    shift
+    TASK_TEXT="$*"
+    
+    if [ -z "$TASK_TEXT" ]; then
+        header "📋 Quick Task"
+        echo "Usage: cc task <description>"
+        echo "       cc task -l  (list tasks)"
+        echo "       cc task -d <id>  (delete task)"
+        exit 1
+    fi
+    
+    # List tasks
+    if [ "$TASK_TEXT" = "-l" ] || [ "$TASK_TEXT" = "--list" ]; then
+        header "📋 Pending Tasks"
+        [ ! -f "$TASKS_FILE" ] && echo "No tasks yet." && exit 0
+        jq -r '.[] | select(.status == "pending") | "  \(.priority) [\(.id)] \(.title)"' "$TASKS_FILE" 2>/dev/null || \
+        python3 -c "
+import json
+with open('$TASKS_FILE', 'r') as f:
+    for t in json.load(f):
+        if t['status'] == 'pending':
+            print(f\"  {t['priority']} [{t['id']}] {t['title']}\")
+"
+        exit 0
+    fi
+    
+    TIMESTAMP=$(date -Iseconds)
+    [ ! -f "$TASKS_FILE" ] && echo "[]" > "$TASKS_FILE"
+    
+    python3 -c "
+import json
+with open('$TASKS_FILE', 'r') as f:
+    tasks = json.load(f)
+tasks.append({
+    'id': len(tasks) + 1,
+    'title': '''$TASK_TEXT''',
+    'priority': '🟡 Medium',
+    'status': 'pending',
+    'created': '$TIMESTAMP',
+    'notes': ''
+})
+with open('$TASKS_FILE', 'w') as f:
+    json.dump(tasks, f, indent=2)
+"
+    success "Task added: $TASK_TEXT"
+    ;;
+
+# ───────────────────────────────────────────────────────────────────────────────
+# LIST TASKS
+# ───────────────────────────────────────────────────────────────────────────────
+tasks|list|ls)
+    header "📋 Tasks"
+    
+    [ ! -f "$TASKS_FILE" ] && echo "No tasks yet." && exit 0
+    
+    echo -e "${CYAN}Pending:${NC}"
+    jq -r '.[] | select(.status == "pending") | "  \(.priority) [\(.id)] \(.title)"' "$TASKS_FILE" 2>/dev/null || \
+    python3 -c "
+import json
+with open('$TASKS_FILE', 'r') as f:
+    for t in json.load(f):
+        if t['status'] == 'pending':
+            print(f\"  {t['priority']} [{t['id']}] {t['title']}\")
+"
+    
+    echo ""
+    echo -e "${CYAN}In Progress:${NC}"
+    jq -r '.[] | select(.status == "in_progress") | "  🔄 [\(.id)] \(.title)"' "$TASKS_FILE" 2>/dev/null || echo "  None"
+    ;;
+
+# ───────────────────────────────────────────────────────────────────────────────
+# COMPLETE TASK
+# ───────────────────────────────────────────────────────────────────────────────
+done|complete|finish)
+    TASK_ID="$2"
+    if [ -z "$TASK_ID" ]; then
+        echo "Usage: cc done <task_id>"
+        exit 1
+    fi
+    
+    python3 -c "
+import json
+from datetime import datetime
+with open('$TASKS_FILE', 'r') as f:
+    tasks = json.load(f)
+for t in tasks:
+    if t['id'] == $TASK_ID:
+        t['status'] = 'completed'
+        t['completed'] = datetime.now().isoformat()
+        print(f\"✅ Completed: {t['title']}\")
+        break
+with open('$TASKS_FILE', 'w') as f:
+    json.dump(tasks, f, indent=2)
+"
+    ;;
+
+# ───────────────────────────────────────────────────────────────────────────────
+# QUICK IDEA
+# ───────────────────────────────────────────────────────────────────────────────
+idea|i)
+    shift
+    IDEA_TEXT="$*"
+    
+    if [ -z "$IDEA_TEXT" ]; then
+        echo "Usage: cc idea <description>"
+        exit 1
+    fi
+    
+    TIMESTAMP=$(date -Iseconds)
+    [ ! -f "$IDEAS_FILE" ] && echo "[]" > "$IDEAS_FILE"
+    
+    python3 -c "
+import json
+with open('$IDEAS_FILE', 'r') as f:
+    ideas = json.load(f)
+ideas.append({
+    'id': len(ideas) + 1,
+    'title': '''$IDEA_TEXT''',
+    'description': '',
+    'created': '$TIMESTAMP',
+    'breakdown': None,
+    'status': 'raw'
+})
+with open('$IDEAS_FILE', 'w') as f:
+    json.dump(ideas, f, indent=2)
+"
+    success "Idea saved: $IDEA_TEXT"
+    ;;
+
+# ───────────────────────────────────────────────────────────────────────────────
+# ASK LOCAL LLM (OLLAMA)
+# ───────────────────────────────────────────────────────────────────────────────
+ask|q|query)
+    shift
+    PROMPT="$*"
+    
+    if [ -z "$PROMPT" ]; then
+        echo "Usage: cc ask <question>"
+        echo "       cc ask -m <model> <question>"
+        exit 1
+    fi
+    
+    # Check for model flag
+    MODEL="$DEFAULT_MODEL"
+    if [ "$1" = "-m" ] || [ "$1" = "--model" ]; then
+        MODEL="$2"
+        shift 2
+        PROMPT="$*"
+    fi
+    
+    header "🤖 Asking $MODEL"
+    
+    curl -s "$OLLAMA_URL/api/generate" \
+        -d "{\"model\": \"$MODEL\", \"prompt\": \"$PROMPT\", \"stream\": false}" | \
+        python3 -c "import sys,json; print(json.load(sys.stdin).get('response','Error'))"
+    ;;
+
+# ───────────────────────────────────────────────────────────────────────────────
+# HERMES COMMANDS
+# ───────────────────────────────────────────────────────────────────────────────
+hermes|h)
+    shift
+    PROMPT="$*"
+    
+    if [ -z "$PROMPT" ]; then
+        echo "Usage: cc hermes <prompt>"
+        echo "       cc hermes -s <skill> <prompt>"
+        exit 1
+    fi
+    
+    header "🌟 Hermes Agent"
+    
+    # Check for skill flag
+    if [ "$1" = "-s" ] || [ "$1" = "--skill" ]; then
+        SKILL="$2"
+        shift 2
+        PROMPT="$*"
+        info "Using skill: $SKILL"
+        hermes "/skill $SKILL" "$PROMPT"
+    else
+        hermes "$PROMPT"
+    fi
+    ;;
+
+# ───────────────────────────────────────────────────────────────────────────────
+# SKILLS
+# ───────────────────────────────────────────────────────────────────────────────
+skills|skill)
+    if [ "$2" = "list" ] || [ -z "$2" ]; then
+        header "🛠️ Hermes Skills"
+        find "$HERMES_DIR/skills" -name "SKILL.md" 2>/dev/null | while read -r skill_path; do
+            skill_name=$(dirname "$skill_path" | xargs basename)
+            echo "  📘 $skill_name"
+        done | sort | head -30
+        echo ""
+        info "Use 'cc skill <name>' to view a skill"
+    elif [ "$2" = "search" ]; then
+        header "🔍 Searching Skills"
+        find "$HERMES_DIR/skills" -name "SKILL.md" -exec grep -l -i "$3" {} \; 2>/dev/null | while read -r skill_path; do
+            skill_name=$(dirname "$skill_path" | xargs basename)
+            echo "  📘 $skill_name"
+        done
+    else
+        # View specific skill
+        SKILL_NAME="$2"
+        SKILL_PATH=$(find "$HERMES_DIR/skills" -type d -name "$SKILL_NAME" 2>/dev/null | head -1)
+        if [ -n "$SKILL_PATH" ] && [ -f "$SKILL_PATH/SKILL.md" ]; then
+            header "📘 $SKILL_NAME"
+            cat "$SKILL_PATH/SKILL.md" | head -50
+        else
+            error "Skill not found: $SKILL_NAME"
+        fi
+    fi
+    ;;
+
+# ───────────────────────────────────────────────────────────────────────────────
+# SPAWN AGENT
+# ───────────────────────────────────────────────────────────────────────────────
+agent|spawn)
+    shift
+    GOAL="$*"
+    
+    if [ -z "$GOAL" ]; then
+        header "🤖 Agent Spawner"
+        echo "Usage: cc agent <goal>"
+        echo "       cc agent -t <template> <goal>"
+        echo ""
+        echo "Templates:"
+        echo "  code-review   - Review code for issues"
+        echo "  research      - Research a topic"
+        echo "  bug-fix       - Find and fix bugs"
+        echo "  content       - Create content"
+        exit 1
+    fi
+    
+    header "🤖 Spawning Agent"
+    info "Goal: $GOAL"
+    
+    AGENT_ID="agent_$(date +%Y%m%d_%H%M%S)"
+    AGENT_LOG="$CC_DIR/agents/$AGENT_ID.log"
+    
+    echo "Agent ID: $AGENT_ID"
+    echo "Log: $AGENT_LOG"
+    echo ""
+    
+    # Run Hermes with the goal
+    hermes "You are an autonomous agent. Your goal: $GOAL. Work independently and report results." 2>&1 | tee "$AGENT_LOG"
+    
+    success "Agent completed. Log saved to $AGENT_LOG"
+    ;;
+
+# ───────────────────────────────────────────────────────────────────────────────
+# MODEL MANAGEMENT
+# ───────────────────────────────────────────────────────────────────────────────
+model|models)
+    if [ "$2" = "list" ] || [ -z "$2" ]; then
+        header "🤖 Available Models"
+        echo -e "${CYAN}Local (Ollama):${NC}"
+        curl -s "$OLLAMA_URL/api/tags" | python3 -c "
+import sys, json
+try:
+    data = json.load(sys.stdin)
+    for m in data.get('models', []):
+        size_gb = m.get('size', 0) / (1024**3)
+        print(f\"  • {m['name']:<25} ({size_gb:.1f} GB)\")
+except:
+    print('  Error fetching models')
+"
+        echo ""
+        echo -e "${CYAN}API Models:${NC}"
+        echo "  • anthropic/claude-opus-4-5-20251101"
+        echo "  • anthropic/claude-sonnet-4"
+        echo "  • google/gemini-2.5-pro"
+    elif [ "$2" = "switch" ] || [ "$2" = "set" ]; then
+        NEW_MODEL="$3"
+        info "Switching Hermes to: $NEW_MODEL"
+        echo "Run: hermes /model $NEW_MODEL"
+    fi
+    ;;
+
+# ───────────────────────────────────────────────────────────────────────────────
+# CRON JOBS
+# ───────────────────────────────────────────────────────────────────────────────
+cron)
+    case "$2" in
+        list|ls|"")
+            header "⏰ Scheduled Jobs"
+            if [ -f "$HERMES_DIR/cron/jobs.json" ]; then
+                python3 -c "
+import json
+with open('$HERMES_DIR/cron/jobs.json', 'r') as f:
+    jobs = json.load(f)
+for job in jobs:
+    print(f\"  [{job.get('id', 'N/A')}] {job.get('name', 'Unnamed')} - {job.get('schedule', 'N/A')}\")
+"
+            else
+                echo "No scheduled jobs."
+            fi
+            ;;
+        add|create)
+            shift 2
+            SCHEDULE="$1"
+            shift
+            PROMPT="$*"
+            info "Creating cron job: $SCHEDULE"
+            hermes "/cron create \"$SCHEDULE\" $PROMPT"
+            ;;
+        *)
+            echo "Usage: cc cron [list|add <schedule> <prompt>]"
+            ;;
+    esac
+    ;;
+
+# ───────────────────────────────────────────────────────────────────────────────
+# MEMORY
+# ───────────────────────────────────────────────────────────────────────────────
+memory|mem)
+    case "$2" in
+        view|show|"")
+            header "🧠 Hermes Memory"
+            if [ -f "$HERMES_DIR/memory.md" ]; then
+                cat "$HERMES_DIR/memory.md"
+            else
+                echo "No memory content."
+            fi
+            ;;
+        add)
+            shift 2
+            MEMORY_TEXT="$*"
+            info "Adding to memory..."
+            hermes "Remember this: $MEMORY_TEXT"
+            ;;
+        search)
+            shift 2
+            SEARCH_TERM="$*"
+            header "🔍 Searching Memory"
+            grep -i "$SEARCH_TERM" "$HERMES_DIR/memory.md" 2>/dev/null || echo "No matches found."
+            ;;
+        *)
+            echo "Usage: cc memory [view|add <text>|search <term>]"
+            ;;
+    esac
+    ;;
+
+# ───────────────────────────────────────────────────────────────────────────────
+# OPEN GUI
+# ───────────────────────────────────────────────────────────────────────────────
+gui|web|open|o)
+    header "🌐 Command Center GUI"
+    
+    # Check if server is running
+    if curl -s http://localhost:8080 > /dev/null 2>&1; then
+        info "Server is running"
+        open "http://localhost:8080"
+    else
+        info "Starting server..."
+        cd "$CC_CODE_DIR"
+        source "$CC_DIR/venv/bin/activate"
+        streamlit run app.py --server.port 8080 --server.headless true &
+        sleep 3
+        open "http://localhost:8080"
+    fi
+    ;;
+
+# ───────────────────────────────────────────────────────────────────────────────
+# START SERVER
+# ───────────────────────────────────────────────────────────────────────────────
+start|serve)
+    header "🚀 Starting Command Center"
+    cd "$CC_CODE_DIR"
+    source "$CC_DIR/venv/bin/activate"
+
+    # Kill existing if running
+    pkill -f "streamlit run app.py" 2>/dev/null
+
+    streamlit run app.py --server.port 8080 --server.headless true &
+    sleep 2
+    success "Server started at http://localhost:8080"
+    open "http://localhost:8080"
+    ;;
+
+# ───────────────────────────────────────────────────────────────────────────────
+# STOP SERVER
+# ───────────────────────────────────────────────────────────────────────────────
+stop)
+    header "🛑 Stopping Command Center"
+    pkill -f "streamlit run app.py" 2>/dev/null
+    success "Server stopped"
+    ;;
+
+# ───────────────────────────────────────────────────────────────────────────────
+# STATUS
+# ───────────────────────────────────────────────────────────────────────────────
+status)
+    header "📊 System Status"
+    
+    # GUI Status
+    if curl -s http://localhost:8080 > /dev/null 2>&1; then
+        echo -e "${GREEN}🟢 GUI Server: Running${NC}"
+    else
+        echo -e "${RED}🔴 GUI Server: Stopped${NC}"
+    fi
+    
+    # Ollama Status
+    if curl -s "$OLLAMA_URL/api/tags" > /dev/null 2>&1; then
+        echo -e "${GREEN}🟢 Ollama: Running${NC}"
+        MODEL_COUNT=$(curl -s "$OLLAMA_URL/api/tags" | python3 -c "import sys,json; print(len(json.load(sys.stdin).get('models',[])))")
+        echo "   Models: $MODEL_COUNT"
+    else
+        echo -e "${RED}🔴 Ollama: Not running${NC}"
+    fi
+    
+    # Tasks
+    if [ -f "$TASKS_FILE" ]; then
+        PENDING=$(python3 -c "import json; print(len([t for t in json.load(open('$TASKS_FILE')) if t['status']=='pending']))")
+        echo "📋 Pending tasks: $PENDING"
+    fi
+    
+    # Storage
+    echo ""
+    echo "📁 Storage:"
+    echo "   Audio: $(ls -1 "$AUDIO_DIR"/*.wav 2>/dev/null | wc -l | tr -d ' ') files"
+    echo "   Screenshots: $(ls -1 "$SCREENSHOTS_DIR"/*.png 2>/dev/null | wc -l | tr -d ' ') files"
+    ;;
+
+# ───────────────────────────────────────────────────────────────────────────────
+# EXPORT
+# ───────────────────────────────────────────────────────────────────────────────
+export)
+    header "📤 Exporting Data"
+    TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+    EXPORT_FILE="$CC_DIR/exports/export_$TIMESTAMP.json"
+    
+    python3 -c "
+import json
+from pathlib import Path
+
+data = {
+    'tasks': json.load(open('$TASKS_FILE')) if Path('$TASKS_FILE').exists() else [],
+    'ideas': json.load(open('$IDEAS_FILE')) if Path('$IDEAS_FILE').exists() else [],
+    'exported': '$TIMESTAMP'
+}
+
+with open('$EXPORT_FILE', 'w') as f:
+    json.dump(data, f, indent=2)
+
+print(f'Exported to: $EXPORT_FILE')
+"
+    success "Export complete"
+    ;;
+
+# ───────────────────────────────────────────────────────────────────────────────
+# BREAKDOWN (AI Task/Idea Breakdown)
+# ───────────────────────────────────────────────────────────────────────────────
+breakdown|analyze)
+    shift
+    TEXT="$*"
+    
+    if [ -z "$TEXT" ]; then
+        echo "Usage: cc breakdown <idea or complex task>"
+        exit 1
+    fi
+    
+    header "🧠 AI Breakdown"
+    
+    curl -s "$OLLAMA_URL/api/generate" \
+        -d "{\"model\": \"$DEFAULT_MODEL\", \"prompt\": \"Break down this into actionable steps, components, and considerations:\n\n$TEXT\n\nProvide:\n1. Core components\n2. Step-by-step tasks\n3. Dependencies\n4. Potential challenges\n5. Success criteria\", \"stream\": false}" | \
+        python3 -c "import sys,json; print(json.load(sys.stdin).get('response','Error'))"
+    ;;
+
+# ───────────────────────────────────────────────────────────────────────────────
+# HELP
+# ───────────────────────────────────────────────────────────────────────────────
+help|h|--help|-h|"")
+    header "🎯 Command Center CLI v2.0"
+    echo ""
+    echo -e "${CYAN}CAPTURE:${NC}"
+    echo "  cc voice [duration]        Record voice memo + transcribe (default 10s)"
+    echo "  cc voice 30 --hermes       Record + transcribe + process with Hermes"
+    echo "  cc screen [-i|-w]          Screenshot (full/-i selection/-w window)"
+    echo "  cc record                  Start screen recording"
+    echo ""
+    echo -e "${CYAN}TASKS:${NC}"
+    echo "  cc task <description>      Add a quick task"
+    echo "  cc tasks                   List all tasks"
+    echo "  cc done <id>               Mark task as complete"
+    echo "  cc idea <description>      Save an idea"
+    echo ""
+    echo -e "${CYAN}AI/LLM:${NC}"
+    echo "  cc ask <question>          Ask local Ollama (gemma4:31b)"
+    echo "  cc ask -m llama3.3 <q>     Ask specific model"
+    echo "  cc hermes <prompt>         Run full Hermes agent"
+    echo "  cc hermes -s <skill> <p>   Run Hermes with a skill"
+    echo "  cc breakdown <text>        AI breakdown of idea/task"
+    echo ""
+    echo -e "${CYAN}SKILLS:${NC}"
+    echo "  cc skills                  List all Hermes skills"
+    echo "  cc skills search <term>    Search skills"
+    echo "  cc skill <name>            View a skill"
+    echo ""
+    echo -e "${CYAN}AGENTS:${NC}"
+    echo "  cc agent <goal>            Spawn autonomous agent"
+    echo ""
+    echo -e "${CYAN}SYSTEM:${NC}"
+    echo "  cc models                  List available models"
+    echo "  cc cron [list|add]         Manage scheduled jobs"
+    echo "  cc memory [view|add|search] Manage Hermes memory"
+    echo "  cc status                  System status"
+    echo "  cc export                  Export all data"
+    echo ""
+    echo -e "${CYAN}GUI:${NC}"
+    echo "  cc start                   Start the web GUI"
+    echo "  cc gui                     Open GUI in browser"
+    echo "  cc stop                    Stop the GUI server"
+    echo ""
+    echo -e "${GOLD}Default Model: $DEFAULT_MODEL${NC}"
+    echo -e "${GOLD}Set CC_DEFAULT_MODEL to change${NC}"
+    ;;
+
+*)
+    error "Unknown command: $1"
+    echo "Run 'cc help' for usage"
+    exit 1
+    ;;
+
+esac
