@@ -77,3 +77,19 @@ commandcenter/exports/
 commandcenter/tasks/
 commandcenter/ideas/
 commandcenter/projects/
+
+# Local Claude Code settings (per-user)
+.claude/
+
+# WhatsApp Web auth cache
+.wwebjs_cache/
+
+# Vendored/cloned exploration repos (not integrated, ~3.4GB total)
+/devtools-frontend/
+/puppeteer/
+/cinematic-site-components/
+
+# Demo media for ClaudeClaw capabilities (keep out of git history)
+/claudeclaw_capabilities.html
+/claudeclaw_capabilities.mp4
+/claudeclaw_summary.mp4
