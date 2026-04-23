@@ -66,11 +66,118 @@ st.set_page_config(
 )
 
 # Custom CSS - Dark theme with gold accents
+# Palette:
+#   bg0  #0f0f1a  bg1  #1a1a2e  bg2  #16213e
+#   text #f3f4f6  muted #9ca3af
+#   gold #ffd700  amber #ff8c00
+#   success #2ecc71  warn #f59e0b  error #e74c3c  info #3b82f6
 st.markdown("""
 <style>
+    /* ── Root surface ──────────────────────────────────────────────── */
     .stApp {
         background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 50%, #16213e 100%);
+        color: #f3f4f6;
     }
+
+    /* ── Make Streamlit's built-in widgets legible on dark bg ──────── */
+    /* Metric value + label */
+    [data-testid="stMetricValue"] { color: #ffd700 !important; font-weight: 700; }
+    [data-testid="stMetricLabel"] { color: #e5e7eb !important; }
+    [data-testid="stMetricDelta"] { color: #9ca3af !important; }
+
+    /* Text inputs, textareas, selects */
+    .stTextInput input, .stTextArea textarea, .stSelectbox div[data-baseweb="select"] > div,
+    .stMultiSelect div[data-baseweb="select"] > div, .stNumberInput input {
+        background-color: #1a1a2e !important;
+        color: #f3f4f6 !important;
+        border: 1px solid rgba(255,215,0,0.25) !important;
+    }
+    .stTextInput input::placeholder, .stTextArea textarea::placeholder {
+        color: #6b7280 !important;
+    }
+
+    /* Labels above widgets */
+    .stTextInput label, .stTextArea label, .stSelectbox label, .stMultiSelect label,
+    .stNumberInput label, .stSlider label, .stCheckbox label, .stRadio label,
+    .stDateInput label, .stFileUploader label {
+        color: #e5e7eb !important; font-weight: 500;
+    }
+
+    /* Buttons */
+    .stButton > button {
+        background: linear-gradient(135deg, rgba(255,215,0,0.15), rgba(255,140,0,0.08)) !important;
+        color: #ffd700 !important;
+        border: 1px solid rgba(255,215,0,0.4) !important;
+        font-weight: 600;
+    }
+    .stButton > button:hover {
+        background: linear-gradient(135deg, rgba(255,215,0,0.25), rgba(255,140,0,0.15)) !important;
+        border-color: #ffd700 !important;
+        color: #fff !important;
+    }
+    .stButton > button[kind="primary"] {
+        background: linear-gradient(135deg, #ffd700, #ff8c00) !important;
+        color: #0f0f1a !important;
+    }
+    .stDownloadButton > button { color: #ffd700 !important; border-color: rgba(255,215,0,0.4) !important; }
+
+    /* Tabs */
+    .stTabs [data-baseweb="tab-list"] { gap: 4px; }
+    .stTabs [data-baseweb="tab"] {
+        color: #9ca3af !important; background: rgba(255,255,255,0.02);
+        border-radius: 8px 8px 0 0;
+    }
+    .stTabs [aria-selected="true"] {
+        color: #ffd700 !important; background: rgba(255,215,0,0.08) !important;
+        border-bottom: 2px solid #ffd700;
+    }
+
+    /* Expanders */
+    .streamlit-expanderHeader, details summary { color: #e5e7eb !important; }
+    .streamlit-expander { border-color: rgba(255,215,0,0.2) !important; }
+
+    /* Checkboxes / radios */
+    .stCheckbox > label > div[role="checkbox"], .stRadio > label > div[role="radio"] {
+        border-color: rgba(255,215,0,0.4) !important;
+    }
+
+    /* Captions, helper text */
+    .stCaption, small, [data-testid="stCaptionContainer"] { color: #9ca3af !important; }
+
+    /* Sidebar */
+    [data-testid="stSidebar"] {
+        background: linear-gradient(180deg, #0f0f1a, #16213e) !important;
+        border-right: 1px solid rgba(255,215,0,0.15);
+    }
+    [data-testid="stSidebar"] * { color: #e5e7eb; }
+    [data-testid="stSidebar"] h1, [data-testid="stSidebar"] h2,
+    [data-testid="stSidebar"] h3 { color: #ffd700 !important; }
+
+    /* Alert boxes — keep Streamlit's color cues but force text visibility */
+    [data-testid="stAlert"] p, [data-testid="stAlertContentInfo"] p,
+    [data-testid="stAlertContentSuccess"] p, [data-testid="stAlertContentWarning"] p,
+    [data-testid="stAlertContentError"] p { color: #0f0f1a !important; font-weight: 500; }
+
+    /* Markdown body text inside main area */
+    .block-container p, .block-container li, .block-container span,
+    .block-container label { color: #e5e7eb; }
+    .block-container h1, .block-container h2, .block-container h3,
+    .block-container h4 { color: #ffd700; }
+    .block-container a { color: #ffd700; }
+
+    /* Code blocks */
+    .stCodeBlock, pre, code {
+        background: #0d1117 !important; color: #c9d1d9 !important;
+        border: 1px solid rgba(255,215,0,0.15) !important;
+    }
+
+    /* Dataframes / tables */
+    [data-testid="stDataFrame"] {
+        background: rgba(255,255,255,0.04) !important;
+        border: 1px solid rgba(255,215,0,0.15) !important;
+    }
+
+    /* ── Custom classes ────────────────────────────────────────────── */
     .main-header {
         font-size: 2.5rem;
         font-weight: bold;
@@ -82,19 +189,20 @@ st.markdown("""
         text-shadow: 0 0 30px rgba(255,215,0,0.3);
     }
     .task-card {
-        background: rgba(255,255,255,0.03);
+        background: rgba(255,255,255,0.06);
         border-radius: 12px;
         padding: 1rem;
         margin: 0.5rem 0;
         border-left: 4px solid #ffd700;
-        backdrop-filter: blur(10px);
+        color: #f3f4f6;
     }
     .skill-card {
-        background: linear-gradient(135deg, rgba(255,215,0,0.1), rgba(255,140,0,0.05));
+        background: linear-gradient(135deg, rgba(255,215,0,0.14), rgba(255,140,0,0.06));
         border-radius: 10px;
         padding: 0.75rem;
         margin: 0.25rem 0;
-        border: 1px solid rgba(255,215,0,0.2);
+        border: 1px solid rgba(255,215,0,0.35);
+        color: #f3f4f6;
         cursor: pointer;
         transition: all 0.3s ease;
     }
@@ -105,20 +213,21 @@ st.markdown("""
     .model-badge {
         display: inline-block;
         padding: 0.25rem 0.75rem;
-        background: rgba(255,215,0,0.15);
+        background: rgba(255,215,0,0.18);
         border-radius: 15px;
         font-size: 0.8rem;
         color: #ffd700;
-        border: 1px solid rgba(255,215,0,0.3);
+        border: 1px solid rgba(255,215,0,0.45);
     }
     .agent-status {
         padding: 0.5rem 1rem;
         border-radius: 8px;
         margin: 0.5rem 0;
+        color: #f3f4f6;
     }
-    .agent-running { background: rgba(46,204,113,0.2); border-left: 3px solid #2ecc71; }
-    .agent-idle { background: rgba(255,215,0,0.1); border-left: 3px solid #ffd700; }
-    .agent-error { background: rgba(231,76,60,0.2); border-left: 3px solid #e74c3c; }
+    .agent-running { background: rgba(46,204,113,0.22); border-left: 3px solid #2ecc71; }
+    .agent-idle    { background: rgba(255,215,0,0.14);  border-left: 3px solid #ffd700; }
+    .agent-error   { background: rgba(231,76,60,0.22);  border-left: 3px solid #e74c3c; }
     .terminal-output {
         background: #0d1117;
         color: #c9d1d9;
@@ -130,34 +239,38 @@ st.markdown("""
         white-space: pre-wrap;
         max-height: 400px;
         overflow-y: auto;
+        border: 1px solid rgba(255,215,0,0.15);
     }
     .hermes-response {
-        background: linear-gradient(135deg, rgba(255,215,0,0.05), rgba(0,0,0,0.2));
-        border: 1px solid rgba(255,215,0,0.2);
+        background: linear-gradient(135deg, rgba(255,215,0,0.08), rgba(0,0,0,0.25));
+        border: 1px solid rgba(255,215,0,0.35);
         border-radius: 12px;
         padding: 1.5rem;
         margin: 1rem 0;
+        color: #f3f4f6;
     }
     .category-header {
         color: #ffd700;
         font-weight: bold;
         padding: 0.5rem 0;
-        border-bottom: 1px solid rgba(255,215,0,0.3);
+        border-bottom: 1px solid rgba(255,215,0,0.45);
         margin-bottom: 0.5rem;
     }
     .stat-card {
-        background: rgba(255,255,255,0.03);
+        background: rgba(255,255,255,0.05);
         border-radius: 10px;
         padding: 1rem;
         text-align: center;
-        border: 1px solid rgba(255,215,0,0.1);
+        border: 1px solid rgba(255,215,0,0.25);
+        color: #f3f4f6;
     }
     .cron-job {
-        background: rgba(255,255,255,0.02);
+        background: rgba(255,255,255,0.05);
         border-radius: 8px;
         padding: 0.75rem;
         margin: 0.5rem 0;
         border-left: 3px solid #3498db;
+        color: #f3f4f6;
     }
 </style>
 """, unsafe_allow_html=True)
