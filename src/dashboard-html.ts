@@ -149,13 +149,9 @@ export function getDashboardHtml(token: string): string {
     <!-- OVERVIEW -->
     <div id="sec-overview">
       <div class="grid-3">
-        <div class="card"><div class="card-title">Daily Tokens</div><div class="stat-val" id="stat-tokens">—</div><div class="stat-label">used today</div></div>
-        <div class="card"><div class="card-title">Daily Cost</div><div class="stat-val" id="stat-cost">—</div><div class="stat-label">USD today</div></div>
         <div class="card"><div class="card-title">Sessions</div><div class="stat-val" id="stat-sessions">—</div><div class="stat-label">active chats</div></div>
-      </div>
-      <div class="grid-2" style="margin-top:16px">
-        <div class="card"><div class="card-title">Token Usage (24h)</div><div class="chart-wrap"><canvas id="chart-tokens"></canvas></div></div>
-        <div class="card"><div class="card-title">Cost (24h)</div><div class="chart-wrap"><canvas id="chart-cost"></canvas></div></div>
+        <div class="card"><div class="card-title">Memories</div><div class="stat-val" id="stat-memories">—</div><div class="stat-label">stored</div></div>
+        <div class="card"><div class="card-title">Queue</div><div class="stat-val" id="stat-queue">—</div><div class="stat-label">pending tasks</div></div>
       </div>
       <div class="card" style="margin-top:16px">
         <div class="card-title">Live Log</div>
@@ -441,7 +437,6 @@ export function getDashboardHtml(token: string): string {
 const TOKEN = '${token}'
 let es = null
 let _reconnectTimer = null
-let tokenChart = null, costChart = null
 let startTime = Date.now()
 
 // ── SSE connection ──────────────────────────────────────────────────────────
@@ -491,38 +486,20 @@ function connect() {
 
 // ── Stats ───────────────────────────────────────────────────────────────────
 function updateStats(d) {
-  document.getElementById('stat-tokens').textContent = fmtNum(d.dailyTokens ?? 0)
-  document.getElementById('stat-cost').textContent = '$' + ((d.dailyCost ?? 0).toFixed(3))
   document.getElementById('stat-sessions').textContent = d.activeSessions ?? 0
+  document.getElementById('stat-memories').textContent = d.memoryCount ?? '—'
+  document.getElementById('stat-queue').textContent = d.queueDepth ?? 0
   const age = Math.floor((Date.now() - startTime) / 1000)
   document.getElementById('uptime-badge').textContent = 'up ' + fmtUptime(age)
   const sb = document.getElementById('sidebar-stats')
   sb.innerHTML = [
-    'Daily tokens: ' + fmtNum(d.dailyTokens ?? 0),
-    'Hourly tokens: ' + fmtNum(d.hourlyTokens ?? 0),
+    'Sessions: ' + (d.activeSessions ?? 0),
     'Memories: ' + (d.memoryCount ?? '—'),
     'Queue depth: ' + (d.queueDepth ?? 0),
   ].join('<br>')
-  if (d.tokenHistory) updateChart(tokenChart, d.tokenHistory)
-  if (d.costHistory) updateChart(costChart, d.costHistory)
 }
 
 // ── Charts ──────────────────────────────────────────────────────────────────
-function makeChart(id, label, color) {
-  const ctx = document.getElementById(id).getContext('2d')
-  return new Chart(ctx, {
-    type: 'line',
-    data: { labels: [], datasets: [{ label, data: [], borderColor: color, backgroundColor: color + '22', fill: true, tension: 0.4, pointRadius: 0 }] },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
-      scales: { x: { display: false }, y: { grid: { color: 'rgba(255,255,255,.04)' }, ticks: { color: '#6b7280', font: { size: 10 } } } } }
-  })
-}
-function updateChart(chart, history) {
-  chart.data.labels = history.map(h => h.label)
-  chart.data.datasets[0].data = history.map(h => h.value)
-  chart.update('none')
-}
-
 // ── Log ─────────────────────────────────────────────────────────────────────
 function appendLog(level, msg) {
   const el = document.getElementById('log-area')
@@ -978,8 +955,8 @@ function appendChatMsg(who, text) {
 const SECTION_GUIDE = {
   overview: {
     icon: '📊', title: 'OVERVIEW',
-    desc: 'Real-time system dashboard. Monitor token usage and cost for today, active chat sessions, and a live streaming log of all agent activity. Charts update every 15 seconds.',
-    actions: ['View daily token spend','Track hourly cost','Monitor active sessions','Watch live agent log','Check uptime'],
+    desc: 'Real-time system status. Monitor active chat sessions, memory count, task queue depth, and a live streaming log of all agent activity. For token usage and cost data, see the 💰 Usage & Cost tab.',
+    actions: ['Monitor active sessions','Watch live agent log','Check memory count','Check queue depth','Check uptime'],
   },
   agents: {
     icon: '🤖', title: 'AGENTS',
@@ -1363,11 +1340,7 @@ function uExportCSV() {
 }
 
 // ── Init ─────────────────────────────────────────────────────────────────────
-connect() // connect first — don't let chart errors block SSE
-try {
-  tokenChart = makeChart('chart-tokens', 'Tokens', '#6c63ff')
-  costChart = makeChart('chart-cost', 'Cost $', '#00d4aa')
-} catch(e) { console.warn('Charts unavailable:', e) }
+connect()
 updateGuide('overview')
 // Fallback watchdog — catches any case onerror missed
 setInterval(() => {

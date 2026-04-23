@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ClaudeClaw OS — User Manual</title>
+<style>
+  :root {
+    --bg: #0d0d0d;
+    --surface: #141414;
+    --surface2: #1a1a1a;
+    --border: #2a2a2a;
+    --accent: #6ee7b7;
+    --accent2: #818cf8;
+    --accent3: #f59e0b;
+    --accent4: #f87171;
+    --text: #e5e7eb;
+    --muted: #6b7280;
+    --code-bg: #111827;
+    --radius: 8px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    font-size: 15px;
+    line-height: 1.65;
+  }
+
+  /* ── Layout ── */
+
+  .layout {
+    display: flex;
+    min-height: 100vh;
+  }
+
+  nav.sidebar {
+    width: 260px;
+    min-width: 260px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 24px 0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+  }
+
+  nav.sidebar .logo {
+    padding: 0 20px 20px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 16px;
+  }
+
+  nav.sidebar .logo-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: -0.3px;
+  }
+
+  nav.sidebar .logo-sub {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  nav.sidebar a {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 20px;
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 13px;
+    transition: color 0.15s, background 0.15s;
+    border-left: 2px solid transparent;
+  }
+
+  nav.sidebar a:hover,
+  nav.sidebar a.active {
+    color: var(--text);
+    background: var(--surface2);
+    border-left-color: var(--accent);
+  }
+
+  nav.sidebar .nav-section {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 16px 20px 6px;
+  }
+
+  main {
+    flex: 1;
+    padding: 48px 56px;
+    max-width: 900px;
+  }
+
+  /* ── Typography ── */
+
+  h1 {
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--accent);
+    margin-bottom: 8px;
+    letter-spacing: -0.5px;
+  }
+
+  h2 {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text);
+    margin: 48px 0 16px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+    scroll-margin-top: 24px;
+  }
+
+  h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--accent2);
+    margin: 28px 0 10px;
+    scroll-margin-top: 24px;
+  }
+
+  h4 {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 20px 0 8px;
+  }
+
+  p { margin-bottom: 14px; color: #d1d5db; }
+
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  .lead {
+    font-size: 16px;
+    color: var(--muted);
+    margin-bottom: 32px;
+    line-height: 1.7;
+  }
+
+  /* ── Components ── */
+
+  .tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+  }
+  .tag-green  { background: #064e3b; color: var(--accent); }
+  .tag-blue   { background: #1e1b4b; color: var(--accent2); }
+  .tag-yellow { background: #451a03; color: var(--accent3); }
+  .tag-red    { background: #450a0a; color: var(--accent4); }
+
+  /* Agent cards */
+  .agent-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 14px;
+    margin: 16px 0 24px;
+  }
+
+  .agent-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px;
+  }
+
+  .agent-card .agent-id {
+    font-family: 'SF Mono', 'Cascadia Code', Consolas, monospace;
+    font-size: 13px;
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .agent-card .agent-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+
+  .agent-card .agent-desc {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  .agent-card .agent-model {
+    margin-top: 10px;
+    font-size: 11px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .model-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+
+  /* Skill cards */
+  .skill-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 14px;
+  }
+
+  .skill-card .skill-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 10px;
+  }
+
+  .skill-card .skill-name {
+    font-family: 'SF Mono', 'Cascadia Code', Consolas, monospace;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--accent2);
+  }
+
+  .skill-card .skill-desc {
+    font-size: 13px;
+    color: #9ca3af;
+    line-height: 1.55;
+    margin-bottom: 10px;
+  }
+
+  .skill-trigger {
+    font-size: 12px;
+    color: var(--muted);
+    font-style: italic;
+    margin-top: 8px;
+  }
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 14px 0 24px;
+    font-size: 13.5px;
+  }
+
+  th {
+    text-align: left;
+    padding: 8px 12px;
+    background: var(--surface2);
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+  }
+
+  td {
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--border);
+    color: #d1d5db;
+    vertical-align: top;
+  }
+
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+
+  td code, th code {
+    font-family: 'SF Mono', 'Cascadia Code', Consolas, monospace;
+    font-size: 12px;
+    background: var(--code-bg);
+    padding: 1px 5px;
+    border-radius: 3px;
+    color: var(--accent);
+  }
+
+  /* Code blocks */
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    overflow-x: auto;
+    margin: 12px 0 20px;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  code {
+    font-family: 'SF Mono', 'Cascadia Code', Consolas, monospace;
+  }
+
+  pre code { color: #e5e7eb; }
+
+  .code-comment { color: #6b7280; }
+  .code-key     { color: var(--accent2); }
+  .code-val     { color: var(--accent); }
+  .code-cmd     { color: var(--accent3); }
+
+  /* Info / warning boxes */
+  .callout {
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    margin: 16px 0;
+    font-size: 13.5px;
+    line-height: 1.6;
+  }
+
+  .callout-info    { background: #0c1a2e; border-left: 3px solid var(--accent2); }
+  .callout-tip     { background: #052e16; border-left: 3px solid var(--accent); }
+  .callout-warning { background: #1c1400; border-left: 3px solid var(--accent3); }
+  .callout-danger  { background: #1c0505; border-left: 3px solid var(--accent4); }
+
+  .callout strong { display: block; margin-bottom: 4px; }
+  .callout-info strong    { color: var(--accent2); }
+  .callout-tip strong     { color: var(--accent); }
+  .callout-warning strong { color: var(--accent3); }
+  .callout-danger strong  { color: var(--accent4); }
+
+  /* Command list */
+  .cmd-list { list-style: none; margin: 10px 0 18px; }
+  .cmd-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13.5px;
+  }
+  .cmd-list li:last-child { border-bottom: none; }
+  .cmd-list .cmd {
+    font-family: 'SF Mono', 'Cascadia Code', Consolas, monospace;
+    font-size: 12.5px;
+    color: var(--accent3);
+    background: var(--code-bg);
+    padding: 2px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+    min-width: 200px;
+  }
+  .cmd-list .cmd-desc { color: #9ca3af; }
+
+  /* Steps */
+  .steps { counter-reset: steps; margin: 14px 0; }
+  .step {
+    counter-increment: steps;
+    display: flex;
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+  .step-num {
+    width: 26px;
+    height: 26px;
+    min-width: 26px;
+    background: var(--accent2);
+    color: #1e1b4b;
+    font-weight: 800;
+    font-size: 13px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1px;
+  }
+  .step-content { font-size: 14px; color: #d1d5db; }
+  .step-content strong { color: var(--text); }
+
+  /* Platform badge */
+  .platform-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 16px;
+    margin-right: 8px;
+  }
+
+  .platform-badge .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+  }
+  .dot-tg { background: #2ea6e0; }
+  .dot-wa { background: #25d366; }
+
+  /* Section divider */
+  hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 40px 0;
+  }
+
+  /* Scroll margin for anchors */
+  [id] { scroll-margin-top: 24px; }
+
+  /* Responsive */
+  @media (max-width: 800px) {
+    nav.sidebar { display: none; }
+    main { padding: 24px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+<!-- ══════════════════════════════════════════════════════════
+     SIDEBAR
+══════════════════════════════════════════════════════════ -->
+<nav class="sidebar">
+  <div class="logo">
+    <div class="logo-title">⚡ ClaudeClaw OS</div>
+    <div class="logo-sub">User Manual — v2.0</div>
+  </div>
+
+  <div class="nav-section">Getting Started</div>
+  <a href="#overview">Overview</a>
+  <a href="#interfaces">How to Interact</a>
+
+  <div class="nav-section">Agents</div>
+  <a href="#agents">All Agents</a>
+  <a href="#orchestrator">Orchestrator</a>
+  <a href="#comms-agent">Comms Agent</a>
+  <a href="#content-agent">Content Agent</a>
+  <a href="#ops-agent">Ops Agent</a>
+  <a href="#research-agent">Research Agent</a>
+
+  <div class="nav-section">Skills</div>
+  <a href="#skills">All Skills</a>
+  <a href="#skill-git">Git Workflow</a>
+  <a href="#skill-content-ops">Content Ops</a>
+  <a href="#skill-annuity">Insurance Sales</a>
+  <a href="#skill-video-prompt">Video Prompts</a>
+  <a href="#skill-video-website">Video to Website</a>
+  <a href="#skill-mcp">MCP Builder</a>
+  <a href="#skill-rust">Rust Agent</a>
+  <a href="#skill-karpathy">Karpathy Guidelines</a>
+  <a href="#skill-3d">3D Web</a>
+
+  <div class="nav-section">Messaging</div>
+  <a href="#telegram">Telegram Bot</a>
+  <a href="#whatsapp">WhatsApp Bridge</a>
+
+  <div class="nav-section">Advanced</div>
+  <a href="#memory">Memory System</a>
+  <a href="#scheduler">Scheduler</a>
+  <a href="#security">Security</a>
+</nav>
+
+<!-- ══════════════════════════════════════════════════════════
+     MAIN CONTENT
+══════════════════════════════════════════════════════════ -->
+<main>
+
+<!-- ── OVERVIEW ── -->
+<section id="overview">
+  <h1>ClaudeClaw OS</h1>
+  <p class="lead">A personal AI operating system running locally. It connects Claude AI to Telegram, WhatsApp, a web dashboard, and a schedule system — all routing through a multi-agent architecture with persistent memory.</p>
+
+  <div class="callout callout-tip">
+    <strong>Quick start</strong>
+    Start the system with <code>npm run dev</code> from the project root. The dashboard is at <a href="http://localhost:3141">http://localhost:3141</a>. Telegram and WhatsApp activate automatically if their tokens are configured in <code>.env</code>.
+  </div>
+
+  <h3 id="interfaces">Ways to Interact</h3>
+  <table>
+    <tr><th>Interface</th><th>Best for</th><th>Access</th></tr>
+    <tr><td><strong>Telegram</strong></td><td>Mobile use, commands, voice messages, quick tasks</td><td>Your configured Telegram bot</td></tr>
+    <tr><td><strong>WhatsApp</strong></td><td>Natural language chat, mobile, existing WA contacts</td><td>Linked phone number</td></tr>
+    <tr><td><strong>Dashboard</strong></td><td>Full control, usage stats, memory management, task scheduling</td><td><a href="http://localhost:3141">localhost:3141</a></td></tr>
+    <tr><td><strong>Console</strong></td><td>Direct message input without a phone</td><td>Dashboard → message box</td></tr>
+  </table>
+</section>
+
+<hr>
+
+<!-- ── AGENTS ── -->
+<section id="agents">
+  <h2>Agents</h2>
+  <p>Agents are specialized AI instances, each with a role, a system prompt (CLAUDE.md), and an optional dedicated Telegram token. All run Claude Sonnet 4.6 by default. The <strong>Orchestrator</strong> handles all unrouted messages and delegates to specialists using <code>@agentName</code> syntax.</p>
+
+  <div class="agent-grid">
+
+    <div class="agent-card" id="orchestrator">
+      <div class="agent-id">@orchestrator</div>
+      <div class="agent-name">Orchestrator</div>
+      <div class="agent-desc">Main entry point. Handles general queries, decides which specialist to delegate to, manages the overall conversation flow and memory context.</div>
+      <div class="agent-model"><span class="model-dot"></span> claude-sonnet-4-6</div>
+    </div>
+
+    <div class="agent-card" id="comms-agent">
+      <div class="agent-id">@comms</div>
+      <div class="agent-name">Comms Agent</div>
+      <div class="agent-desc">Handles communication tasks: drafting emails, writing messages, composing social media posts, and any outbound written communication.</div>
+      <div class="agent-model"><span class="model-dot"></span> claude-sonnet-4-6</div>
+    </div>
+
+    <div class="agent-card" id="content-agent">
+      <div class="agent-id">@content</div>
+      <div class="agent-name">Content Agent</div>
+      <div class="agent-desc">Creates written content: articles, summaries, reports, documentation, scripts, and long-form writing with consistent brand voice.</div>
+      <div class="agent-model"><span class="model-dot"></span> claude-sonnet-4-6</div>
+    </div>
+
+    <div class="agent-card" id="ops-agent">
+      <div class="agent-id">@ops</div>
+      <div class="agent-name">Ops Agent</div>
+      <div class="agent-desc">Manages operations: system tasks, file management, automation scripts, process orchestration, and infrastructure-related work.</div>
+      <div class="agent-model"><span class="model-dot"></span> claude-sonnet-4-6</div>
+    </div>
+
+    <div class="agent-card" id="research-agent">
+      <div class="agent-id">@research</div>
+      <div class="agent-name">Research Agent</div>
+      <div class="agent-desc">Conducts deep research: web search, data analysis, fact-finding, competitive research, and synthesizing information from multiple sources.</div>
+      <div class="agent-model"><span class="model-dot"></span> claude-sonnet-4-6</div>
+    </div>
+
+  </div>
+
+  <h3>Delegating to an Agent</h3>
+  <p>Prefix any message with <code>@agentName</code> to route it to a specific agent:</p>
+  <pre><code>@research What are the top annuity carriers by market share in 2025?
+@comms Draft a follow-up email to a prospect who attended yesterday's seminar
+@content Write a 500-word LinkedIn article on retirement income strategies
+@ops Create a shell script that backs up the database every night at 2am</code></pre>
+
+  <div class="callout callout-info">
+    <strong>No prefix needed</strong>
+    If you send a plain message without <code>@agentName</code>, it goes to the Orchestrator, which decides whether to handle it directly or route it automatically.
+  </div>
+</section>
+
+<hr>
+
+<!-- ── SKILLS ── -->
+<section id="skills">
+  <h2>Skills</h2>
+  <p>Skills are structured prompt templates that give the AI expert-level knowledge and a defined workflow for specific tasks. They are stored in <code>.agent/skills/</code> and can be invoked via Telegram commands, the dashboard, or by just describing the task.</p>
+
+  <div class="callout callout-tip">
+    <strong>Automatic skill activation</strong>
+    Many skills activate automatically based on your message content — you don't need to explicitly invoke them. The Orchestrator recognizes the intent and loads the relevant skill.
+  </div>
+
+  <!-- Git Workflow -->
+  <div class="skill-card" id="skill-git">
+    <div class="skill-header">
+      <div class="skill-name">git-workflow</div>
+      <span class="tag tag-green">Developer</span>
+    </div>
+    <div class="skill-desc">
+      Opinionated, safe Git operations matching this repo's Conventional Commits style. Covers quick commits, branch-to-PR flows, multi-agent code review, branch cleanup, stash operations, and rebasing.
+    </div>
+    <h4>Key workflows</h4>
+    <table>
+      <tr><th>Workflow</th><th>What it does</th></tr>
+      <tr><td><code>/commit</code></td><td>Stage, draft Conventional Commit message, commit with safety checks</td></tr>
+      <tr><td><code>/commit-push-pr</code></td><td>Full branch → commit → push → GitHub PR creation</td></tr>
+      <tr><td><code>/code-review &lt;PR#&gt;</code></td><td>5-agent parallel review: CLAUDE.md compliance, bug scan, history context, prior comments, code style</td></tr>
+      <tr><td><code>/clean_gone</code></td><td>Remove local branches whose remote has been deleted</td></tr>
+    </table>
+    <div class="skill-trigger">Triggers on: "commit", "push", "create a PR", "code review", "branch", "merge", "stash", "rebase", "git"</div>
+  </div>
+
+  <!-- Content Ops -->
+  <div class="skill-card" id="skill-content-ops">
+    <div class="skill-header">
+      <div class="skill-name">content-ops</div>
+      <span class="tag tag-blue">Content</span>
+    </div>
+    <div class="skill-desc">
+      Generates consistent content across all formats anchored to a single <code>BRAND.md</code> source of truth. Prevents voice drift across support docs, promotions, product descriptions, email sequences, and social posts.
+    </div>
+    <h4>Content types</h4>
+    <table>
+      <tr><th>Type</th><th>Examples</th></tr>
+      <tr><td>Support docs</td><td>How-to guides, FAQs, troubleshooting articles</td></tr>
+      <tr><td>Promotional</td><td>Ad copy, landing pages, flyers, one-pagers</td></tr>
+      <tr><td>Product descriptions</td><td>Product pages, feature descriptions, spec sheets</td></tr>
+      <tr><td>Email copy</td><td>Sequences, announcements, nurture campaigns</td></tr>
+      <tr><td>Social media</td><td>LinkedIn, Instagram, X/Twitter, Facebook posts</td></tr>
+    </table>
+    <div class="callout callout-warning" style="margin-top:10px">
+      <strong>Setup required</strong>
+      Fill out <code>.agent/skills/content-ops/BRAND.md</code> before using this skill. It's the single source of truth for voice, terminology, proof points, and compliance rules.
+    </div>
+  </div>
+
+  <!-- Annuity / Insurance -->
+  <div class="skill-card" id="skill-annuity">
+    <div class="skill-header">
+      <div class="skill-name">annuity-life-insurance-sales</div>
+      <span class="tag tag-yellow">Finance</span>
+    </div>
+    <div class="skill-desc">
+      Expert insurance sales coaching using Tom Hegna's "Paychecks and Playchecks" framework. Covers the full 8-phase sales lifecycle: prospecting → discovery → suitability → product selection → presentation → objection handling → closing → post-issue service.
+    </div>
+    <h4>Core capabilities</h4>
+    <ul style="color:#9ca3af; font-size:13.5px; padding-left:18px; line-height:2">
+      <li>Income gap analysis with exact dollar amounts</li>
+      <li>Suitability documentation and NAIC compliance</li>
+      <li>Product selection decision tree (SPIA, DIA, FIA, MYGA, QLAC, IUL, Whole Life)</li>
+      <li>Objection handling with the A-E-R framework (Acknowledge-Empathize-Redirect)</li>
+      <li>Closing techniques: assumptive, alternative, summary, urgency</li>
+      <li>Annual review agenda and post-sale relationship management</li>
+    </ul>
+    <div class="skill-trigger">Use for: client meeting prep, suitability analysis, objection coaching, compliant sales language</div>
+  </div>
+
+  <!-- Video Prompt Builder -->
+  <div class="skill-card" id="skill-video-prompt">
+    <div class="skill-header">
+      <div class="skill-name">video-prompt-builder</div>
+      <span class="tag tag-blue">Creative</span>
+    </div>
+    <div class="skill-desc">
+      Generates detailed, shot-by-shot AI video prompts for Seedance 2.0. Takes a creative brief and produces a full structured output: shot timeline, effects inventory, density map, energy arc, and a copy-paste-ready Final Production Brief.
+    </div>
+    <h4>Output sections</h4>
+    <table>
+      <tr><th>Section</th><th>Content</th></tr>
+      <tr><td>Shot-by-Shot Timeline</td><td>Each shot with effect names, camera behavior, speed, transitions</td></tr>
+      <tr><td>Effects Inventory</td><td>All effects used, how many times, which shots</td></tr>
+      <tr><td>Density Map</td><td>HIGH/MEDIUM/LOW density rating per time segment</td></tr>
+      <tr><td>Energy Arc</td><td>3-act narrative structure of the video's energy</td></tr>
+      <tr><td>Final Production Brief</td><td>30-100 word copy-paste prompt for Seedance 2.0</td></tr>
+    </table>
+    <div class="skill-trigger">Triggers on: "video prompt", "Seedance", "shot list", "plan a video", "brand film prompt", "ad prompt"</div>
+  </div>
+
+  <!-- Video to Website -->
+  <div class="skill-card" id="skill-video-website">
+    <div class="skill-header">
+      <div class="skill-name">video-to-website</div>
+      <span class="tag tag-blue">Creative</span>
+    </div>
+    <div class="skill-desc">
+      Converts a video file into a premium scroll-driven animated website using GSAP, Lenis smooth scroll, and canvas frame rendering. Produces a full production-ready HTML/CSS/JS site with choreographed animations, counters, marquee text, and dark overlays.
+    </div>
+    <h4>What you provide</h4>
+    <ul style="color:#9ca3af; font-size:13.5px; padding-left:18px; line-height:2">
+      <li>Video file path (MP4, MOV, etc.)</li>
+      <li>Optional: brand name, text sections, color scheme, design direction</li>
+    </ul>
+    <h4>What you get</h4>
+    <ul style="color:#9ca3af; font-size:13.5px; padding-left:18px; line-height:2">
+      <li>Extracted frames + complete <code>index.html</code>, <code>css/style.css</code>, <code>js/app.js</code></li>
+      <li>4+ distinct animation types, circle-wipe hero reveal, horizontal marquee, stat counters</li>
+    </ul>
+  </div>
+
+  <!-- MCP Builder -->
+  <div class="skill-card" id="skill-mcp">
+    <div class="skill-header">
+      <div class="skill-name">mcp-builder</div>
+      <span class="tag tag-green">Developer</span>
+    </div>
+    <div class="skill-desc">
+      Complete guide for building Model Context Protocol (MCP) servers in TypeScript or Python. Covers 4 phases: research/planning, implementation, review/testing, and creating evaluations. MCP servers let Claude interact with external APIs and services.
+    </div>
+    <h4>Phases</h4>
+    <table>
+      <tr><th>Phase</th><th>Activity</th></tr>
+      <tr><td>1. Research</td><td>Understand MCP design, study API docs, plan tools</td></tr>
+      <tr><td>2. Implementation</td><td>Project structure, API client, tool schemas with Zod/Pydantic</td></tr>
+      <tr><td>3. Review</td><td>DRY check, type coverage, MCP Inspector testing</td></tr>
+      <tr><td>4. Evaluations</td><td>10 read-only Q&A pairs for LLM effectiveness testing</td></tr>
+    </table>
+    <div class="skill-trigger">Use for: integrating any external API into Claude, building custom tools, extending ClaudeClaw capabilities</div>
+  </div>
+
+  <!-- Rust Agent -->
+  <div class="skill-card" id="skill-rust">
+    <div class="skill-header">
+      <div class="skill-name">rust-agentai</div>
+      <span class="tag tag-green">Developer</span>
+    </div>
+    <div class="skill-desc">
+      Build AI agents in Rust using the <code>agentai</code> crate. Supports structured output, custom toolboxes, MCP server integration, and built-in web search/fetch. Wraps the <code>genai</code> library for multi-provider LLM access.
+    </div>
+    <h4>Agent types</h4>
+    <table>
+      <tr><th>Type</th><th>Output</th><th>Tools</th></tr>
+      <tr><td>Simple Q&A</td><td>String</td><td>None</td></tr>
+      <tr><td>Structured output</td><td>Custom struct</td><td>None</td></tr>
+      <tr><td>Custom tools</td><td>String or struct</td><td><code>#[toolbox]</code> impl</td></tr>
+      <tr><td>MCP integration</td><td>String or struct</td><td><code>McpToolBox</code></td></tr>
+      <tr><td>Web search/fetch</td><td>String or struct</td><td><code>ToolBoxSet</code></td></tr>
+    </table>
+    <div class="skill-trigger">Triggers on: "Rust agent", "agentai crate", "structured output in Rust", "MCP in Rust"</div>
+  </div>
+
+  <!-- Karpathy Guidelines -->
+  <div class="skill-card" id="skill-karpathy">
+    <div class="skill-header">
+      <div class="skill-name">karpathy-guidelines</div>
+      <span class="tag tag-green">Developer</span>
+    </div>
+    <div class="skill-desc">
+      Behavioral rules derived from Andrej Karpathy's observations on common LLM coding mistakes. Applied automatically when writing, reviewing, or refactoring code to prevent overcomplication and ensure surgical, verifiable changes.
+    </div>
+    <h4>Core rules</h4>
+    <ul style="color:#9ca3af; font-size:13.5px; padding-left:18px; line-height:2">
+      <li><strong style="color:var(--text)">Think before coding</strong> — surface assumptions, present tradeoffs, ask when unclear</li>
+      <li><strong style="color:var(--text)">Simplicity first</strong> — minimum code that solves the problem, nothing speculative</li>
+      <li><strong style="color:var(--text)">Surgical changes</strong> — touch only what the request requires</li>
+      <li><strong style="color:var(--text)">Goal-driven</strong> — define verifiable success criteria, loop until verified</li>
+    </ul>
+    <div class="skill-trigger">Applied automatically during all coding tasks</div>
+  </div>
+
+  <!-- 3D Web -->
+  <div class="skill-card" id="skill-3d">
+    <div class="skill-header">
+      <div class="skill-name">3d-web-experience</div>
+      <span class="tag tag-blue">Creative</span>
+    </div>
+    <div class="skill-desc">
+      Build scroll-driven 3D web experiences. Covers stack selection (Spline, React Three Fiber, Three.js + GSAP), GLTF compression, loading strategies, scroll controls, performance optimization, and desktop-only fallback patterns.
+    </div>
+    <div class="skill-trigger">Triggers on: "3D website", "Three.js", "React Three Fiber", "Spline", "scroll-driven 3D", "GLTF"</div>
+  </div>
+
+</section>
+
+<hr>
+
+<!-- ── TELEGRAM ── -->
+<section id="telegram">
+  <h2>Telegram Bot</h2>
+
+  <div class="platform-badge"><span class="dot dot-tg"></span> Telegram</div>
+
+  <p>The Telegram bot is the primary mobile interface for ClaudeClaw OS. Every command, skill, and agent is accessible from your phone. Supports text, voice messages (with Groq Whisper STT), images, and documents.</p>
+
+  <h3>Setup</h3>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-content"><strong>Create your bot</strong> — Open Telegram, message <code>@BotFather</code>, send <code>/newbot</code>, follow the prompts, copy the token.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-content"><strong>Get your chat ID</strong> — Message <code>@userinfobot</code> in Telegram to get your numeric user ID.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-content"><strong>Configure <code>.env</code></strong>
+<pre><code>TELEGRAM_BOT_TOKEN=<span class="code-val">1234567890:AAF...</span>
+ALLOWED_CHAT_ID=<span class="code-val">123456789</span>
+TELEGRAM_ALLOWED_USERS=<span class="code-val">yourusername</span></code></pre>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-content"><strong>Start the system</strong> — Run <code>npm run dev</code>. Open your bot in Telegram and send <code>/start</code>.</div>
+    </div>
+  </div>
+
+  <h3>General Commands</h3>
+  <ul class="cmd-list">
+    <li><span class="cmd">/start</span><span class="cmd-desc">Initialize the bot and confirm connection</span></li>
+    <li><span class="cmd">/help</span><span class="cmd-desc">Full command reference</span></li>
+    <li><span class="cmd">/status</span><span class="cmd-desc">System status: agent count, token usage, lock state</span></li>
+    <li><span class="cmd">/health</span><span class="cmd-desc">Live API health check for all integrations</span></li>
+    <li><span class="cmd">/stats</span><span class="cmd-desc">Today's token and cost usage</span></li>
+    <li><span class="cmd">/agents</span><span class="cmd-desc">List all registered agents</span></li>
+    <li><span class="cmd">/reset</span><span class="cmd-desc">Clear current session context</span></li>
+    <li><span class="cmd">/abort</span><span class="cmd-desc">Kill a running task mid-execution</span></li>
+    <li><span class="cmd">/audit</span><span class="cmd-desc">Last 10 security and activity log entries</span></li>
+  </ul>
+
+  <h3>Memory Commands</h3>
+  <ul class="cmd-list">
+    <li><span class="cmd">/remember &lt;fact&gt;</span><span class="cmd-desc">Save a pinned memory — extracted via Gemini, permanently recalled in future chats</span></li>
+    <li><span class="cmd">/memory</span><span class="cmd-desc">Show top 5 recent memories and latest consolidation insight</span></li>
+    <li><span class="cmd">/pin &lt;id&gt;</span><span class="cmd-desc">Pin an existing memory by its ID (get IDs from /memory)</span></li>
+    <li><span class="cmd">/forget</span><span class="cmd-desc">Wipe all memory stored for this chat</span></li>
+  </ul>
+
+  <h3>Skills Commands</h3>
+  <ul class="cmd-list">
+    <li><span class="cmd">/skills</span><span class="cmd-desc">List all available skills with descriptions</span></li>
+    <li><span class="cmd">/skill &lt;name&gt;</span><span class="cmd-desc">Invoke a skill directly — e.g. <code>/skill git-workflow</code></span></li>
+  </ul>
+
+  <h3>Scheduler Commands</h3>
+  <ul class="cmd-list">
+    <li><span class="cmd">/tasks</span><span class="cmd-desc">List all scheduled tasks with status and next run time</span></li>
+    <li><span class="cmd">/schedule name | cron | prompt</span><span class="cmd-desc">Create a scheduled task. Example: <code>/schedule daily-brief | 0 9 * * * | Write a morning AI news briefing</code></span></li>
+    <li><span class="cmd">/pause &lt;id&gt;</span><span class="cmd-desc">Pause a scheduled task</span></li>
+    <li><span class="cmd">/resume &lt;id&gt;</span><span class="cmd-desc">Resume a paused task</span></li>
+    <li><span class="cmd">/deltask &lt;id&gt;</span><span class="cmd-desc">Delete a scheduled task permanently</span></li>
+    <li><span class="cmd">/missions</span><span class="cmd-desc">List long-running autonomous mission tasks</span></li>
+  </ul>
+
+  <h3>Voice</h3>
+  <ul class="cmd-list">
+    <li><span class="cmd">/voice</span><span class="cmd-desc">Toggle voice transcription on/off. When enabled, send voice messages — Groq Whisper converts them to text and processes as normal messages. Requires <code>GROQ_API_KEY</code> in <code>.env</code>.</span></li>
+  </ul>
+
+  <h3>Security Commands</h3>
+  <ul class="cmd-list">
+    <li><span class="cmd">/lock</span><span class="cmd-desc">Lock the system — no AI responses until unlocked</span></li>
+    <li><span class="cmd">/unlock &lt;PIN&gt;</span><span class="cmd-desc">Unlock with PIN (requires <code>PIN_HASH</code> set in <code>.env</code>)</span></li>
+  </ul>
+
+  <h3>Example Conversations</h3>
+  <pre><code><span class="code-comment"># Direct question (goes to Orchestrator)</span>
+What's the best MYGA rate strategy for a 68-year-old with $400k in a traditional IRA?
+
+<span class="code-comment"># Agent delegation</span>
+@research Find the top 5 annuity carriers by AM Best rating in 2025
+
+<span class="code-comment"># Save a fact to memory</span>
+/remember My client John Martinez has a $2,400/month income gap and a 7-year time horizon
+
+<span class="code-comment"># Create a daily briefing task</span>
+/schedule morning-brief | 0 8 * * * | Summarize any major financial market news relevant to retirement planning
+
+<span class="code-comment"># Invoke a skill explicitly</span>
+/skill annuity-life-insurance-sales</code></pre>
+
+  <div class="callout callout-info">
+    <strong>Multiple bot tokens</strong>
+    You can assign separate Telegram bots to individual agents via <code>COMMS_TELEGRAM_TOKEN</code>, <code>CONTENT_TELEGRAM_TOKEN</code>, etc. in <code>.env</code>. Each agent then has its own Telegram bot identity.
+  </div>
+</section>
+
+<hr>
+
+<!-- ── WHATSAPP ── -->
+<section id="whatsapp">
+  <h2>WhatsApp Bridge</h2>
+
+  <div class="platform-badge"><span class="dot dot-wa"></span> WhatsApp</div>
+
+  <p>The WhatsApp bridge mirrors your phone number to ClaudeClaw OS using whatsapp-web.js and a headless Chromium session. It accepts direct messages from an allowlist of phone numbers and routes them through the Orchestrator agent.</p>
+
+  <h3>Setup</h3>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-content"><strong>Configure allowed numbers</strong> — Add your phone number(s) to <code>.env</code> (country code, no +):
+<pre><code>WHATSAPP_ALLOWED_USERS=<span class="code-val">15551234567</span></code></pre>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-content"><strong>Start the system</strong> — Run <code>npm run dev</code>. A Chromium instance launches automatically.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-content"><strong>Scan the QR code</strong> — Open the dashboard at <a href="http://localhost:3141">localhost:3141</a> → Services tab → WhatsApp QR. Scan with your phone: <strong>WhatsApp → Settings → Linked Devices → Link a Device</strong>.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-content"><strong>Confirm connection</strong> — The Services tab shows WhatsApp as <span style="color:var(--accent)">Connected</span>. The session is saved locally and persists across restarts.</div>
+    </div>
+  </div>
+
+  <h3>How it works</h3>
+  <table>
+    <tr><th>Behaviour</th><th>Detail</th></tr>
+    <tr><td>Accepted messages</td><td>Direct messages from numbers in <code>WHATSAPP_ALLOWED_USERS</code></td></tr>
+    <tr><td>Groups</td><td>Ignored entirely — direct messages only</td></tr>
+    <tr><td>Unknown senders</td><td>Silently ignored (logged as warning)</td></tr>
+    <tr><td>Routing</td><td>All messages go through the Orchestrator agent with memory context</td></tr>
+    <tr><td>Outbox</td><td>If WhatsApp is offline, messages queue and flush when reconnected</td></tr>
+    <tr><td>Session storage</td><td><code>store/whatsapp-session/</code> — delete to force fresh QR scan</td></tr>
+  </table>
+
+  <h3>Using WhatsApp</h3>
+  <p>WhatsApp has no slash commands — everything is plain natural language. Just message the linked number like you would a person.</p>
+
+  <pre><code><span class="code-comment"># Ask anything</span>
+What should I say to a client who says "I hate annuities"?
+
+<span class="code-comment"># Delegate to a specialist agent</span>
+@research What is the current 10-year Treasury yield?
+
+<span class="code-comment"># Multi-step task</span>
+Draft a follow-up email for a client meeting I had today.
+The client is 67, has $500k in a 401k, concerned about outliving their money.</code></pre>
+
+  <div class="callout callout-warning">
+    <strong>Re-authentication</strong>
+    WhatsApp Web sessions expire. If ClaudeClaw shows WhatsApp as disconnected, go to the dashboard Services tab to scan a fresh QR code. If no QR appears, delete <code>store/whatsapp-session/</code> and restart with <code>npm run dev</code>.
+  </div>
+
+  <h3>Comparison: Telegram vs WhatsApp</h3>
+  <table>
+    <tr><th>Feature</th><th>Telegram</th><th>WhatsApp</th></tr>
+    <tr><td>Slash commands</td><td>✅ Full command set</td><td>❌ Natural language only</td></tr>
+    <tr><td>Voice messages</td><td>✅ Groq Whisper STT</td><td>❌ Not supported</td></tr>
+    <tr><td>Agent delegation</td><td>✅ <code>@agentName</code></td><td>✅ <code>@agentName</code></td></tr>
+    <tr><td>Memory commands</td><td>✅ /remember, /pin, /forget</td><td>❌ Automatic only</td></tr>
+    <tr><td>Scheduler</td><td>✅ /schedule command</td><td>❌ Use dashboard</td></tr>
+    <tr><td>Session auth</td><td>Bot token (permanent)</td><td>QR scan (periodically expires)</td></tr>
+    <tr><td>Best for</td><td>Power users, automation, commands</td><td>Casual use, existing WhatsApp contacts</td></tr>
+  </table>
+</section>
+
+<hr>
+
+<!-- ── MEMORY ── -->
+<section id="memory">
+  <h2>Memory System</h2>
+  <p>ClaudeClaw OS maintains persistent memory across all conversations using Gemini text-embedding-004. Memories are stored in a SQLite database, embedded as vectors, and recalled automatically based on semantic relevance to each new message.</p>
+
+  <h3>How memories are created</h3>
+  <ul style="color:#9ca3af; font-size:14px; padding-left:18px; line-height:2.2">
+    <li><strong style="color:var(--text)">Automatic</strong> — Every conversation turn is analyzed and facts are extracted silently in the background</li>
+    <li><strong style="color:var(--text)">Manual via Telegram</strong> — <code>/remember &lt;fact&gt;</code> pins a memory at importance 0.9+</li>
+    <li><strong style="color:var(--text)">Manual via Dashboard</strong> — Memory tab → add memory text field</li>
+    <li><strong style="color:var(--text)">Consolidation</strong> — A background loop periodically synthesizes multiple memories into insight summaries</li>
+  </ul>
+
+  <h3>Memory lifecycle</h3>
+  <table>
+    <tr><th>Stage</th><th>What happens</th></tr>
+    <tr><td>Ingest</td><td>Gemini extracts summary, entities, topics, importance score from conversation</td></tr>
+    <tr><td>Embed</td><td>Summary is embedded as a 768-dim vector via text-embedding-004</td></tr>
+    <tr><td>Recall</td><td>On each new message, top-N semantically similar memories are prepended as context</td></tr>
+    <tr><td>Consolidate</td><td>Periodic loop groups related memories and writes insight summaries</td></tr>
+    <tr><td>Decay</td><td>Low-importance, old memories are pruned; pinned memories persist forever</td></tr>
+  </table>
+</section>
+
+<hr>
+
+<!-- ── SCHEDULER ── -->
+<section id="scheduler">
+  <h2>Scheduler</h2>
+  <p>The scheduler runs cron-based tasks that execute prompts through the AI agents on a set schedule and deliver results back to your Telegram chat (or log them if no chat is configured).</p>
+
+  <h3>Creating a scheduled task</h3>
+  <p><strong>Via Telegram:</strong></p>
+  <pre><code>/schedule &lt;name&gt; | &lt;cron expression&gt; | &lt;prompt&gt;
+
+<span class="code-comment"># Examples</span>
+/schedule morning-brief | 0 8 * * * | Summarize the top financial news relevant to retirement planning
+
+/schedule weekly-review | 0 9 * * MON | Create a weekly summary of my recent conversations and any action items
+
+/schedule market-check | 0 16 * * 1-5 | What happened in the bond market today?</code></pre>
+
+  <p><strong>Via Dashboard:</strong> Tasks tab → New Task form → fill in name, prompt, cron expression, and agent.</p>
+
+  <h3>Cron expression reference</h3>
+  <table>
+    <tr><th>Expression</th><th>Meaning</th></tr>
+    <tr><td><code>0 8 * * *</code></td><td>Every day at 8:00 AM</td></tr>
+    <tr><td><code>0 9 * * MON</code></td><td>Every Monday at 9:00 AM</td></tr>
+    <tr><td><code>0 16 * * 1-5</code></td><td>Weekdays at 4:00 PM</td></tr>
+    <tr><td><code>0 */4 * * *</code></td><td>Every 4 hours</td></tr>
+    <tr><td><code>30 12 1 * *</code></td><td>First of the month at 12:30 PM</td></tr>
+  </table>
+</section>
+
+<hr>
+
+<!-- ── SECURITY ── -->
+<section id="security">
+  <h2>Security</h2>
+
+  <h3>Access control</h3>
+  <p>All messaging interfaces enforce an allowlist. Set these in <code>.env</code>:</p>
+  <pre><code>ALLOWED_CHAT_ID=<span class="code-val">123456789</span>         <span class="code-comment"># Telegram chat ID</span>
+TELEGRAM_ALLOWED_USERS=<span class="code-val">username</span>    <span class="code-comment"># Telegram username or user ID</span>
+WHATSAPP_ALLOWED_USERS=<span class="code-val">15551234567</span> <span class="code-comment"># WhatsApp phone number</span></code></pre>
+
+  <h3>PIN lock</h3>
+  <p>Generate a PIN hash and set it in <code>.env</code> to enable system locking:</p>
+  <pre><code><span class="code-comment"># Generate PIN_HASH (replace "yourPIN" with your actual PIN)</span>
+echo -n "salt:$(echo -n 'salt+yourPIN' | sha256sum | cut -d' ' -f1)"</code></pre>
+  <p>Then in Telegram: <code>/lock</code> to lock, <code>/unlock yourPIN</code> to unlock.</p>
+
+  <h3>Kill phrase</h3>
+  <p>Set <code>KILL_PHRASE</code> in <code>.env</code> to an exact phrase that triggers emergency shutdown when spoken in any chat.</p>
+
+  <h3>Idle lock</h3>
+  <p>Set <code>IDLE_LOCK_MINUTES=30</code> to auto-lock after inactivity. Default is 30 minutes.</p>
+
+  <div class="callout callout-danger">
+    <strong>Never expose your dashboard publicly</strong>
+    The dashboard at port 3141 has no authentication by default (dev mode). Set <code>DASHBOARD_TOKEN</code> in <code>.env</code> to require a bearer token on all API calls if you expose it beyond localhost.
+  </div>
+</section>
+
+<div style="height:80px"></div>
+
+</main>
+</div>
+
+<script>
+  // Highlight active nav link based on scroll position
+  const links = document.querySelectorAll('nav.sidebar a');
+  const sections = [];
+
+  links.forEach(link => {
+    const id = link.getAttribute('href').replace('#','');
+    const el = document.getElementById(id);
+    if (el) sections.push({ id, el, link });
+  });
+
+  function onScroll() {
+    const scrollY = window.scrollY + 80;
+    let active = sections[0];
+    for (const s of sections) {
+      if (s.el.offsetTop <= scrollY) active = s;
+    }
+    links.forEach(l => l.classList.remove('active'));
+    if (active) active.link.classList.add('active');
+  }
+
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+</script>
+</body>
+</html>

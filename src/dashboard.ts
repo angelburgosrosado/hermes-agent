@@ -1,6 +1,8 @@
 import { Hono } from 'hono'
 import { serve } from '@hono/node-server'
 import { streamSSE } from 'hono/streaming'
+import { readFileSync, existsSync } from 'fs'
+import { join } from 'path'
 import { DASHBOARD_PORT, DASHBOARD_TOKEN } from './config.js'
 import { getDashboardHtml } from './dashboard-html.js'
 import { getDailyUsage, getHourlyUsage } from './rate-tracker.js'
@@ -41,6 +43,12 @@ app.use('*', async (c, next) => {
 
 app.get('/', (c) => {
   return c.html(getDashboardHtml(DASHBOARD_TOKEN))
+})
+
+app.get('/manual', (c) => {
+  const manualPath = join(process.cwd(), 'public', 'manual.html')
+  if (!existsSync(manualPath)) return c.text('Manual not found', 404)
+  return c.html(readFileSync(manualPath, 'utf-8'))
 })
 
 app.get('/api/stream', (c) => {
@@ -312,4 +320,12 @@ export function stopDashboard(): void {
     _server.close()
     _server = null
   }
+}
+
+// Auto-start when run directly: tsx src/dashboard.ts or node dist/dashboard.js
+import { fileURLToPath } from 'url'
+import { initDatabase } from './db.js'
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  initDatabase()
+  startDashboard()
 }
