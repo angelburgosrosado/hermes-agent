@@ -7,7 +7,7 @@ def test_run_anthropic_oauth_flow_prefers_claude_code_credentials(tmp_path, monk
     monkeypatch.setenv("HERMES_HOME", str(tmp_path))
     monkeypatch.setattr(
         "agent.anthropic_adapter.run_oauth_setup_token",
-        lambda: "sk-ant-oat01-from-claude-setup",
+        lambda: "mock-ant-oat01-from-claude-setup",
     )
     monkeypatch.setattr(
         "agent.anthropic_adapter.read_claude_code_credentials",
@@ -39,14 +39,14 @@ def test_run_anthropic_oauth_flow_manual_token_still_persists(tmp_path, monkeypa
     monkeypatch.setattr("agent.anthropic_adapter.run_oauth_setup_token", lambda: None)
     monkeypatch.setattr("agent.anthropic_adapter.read_claude_code_credentials", lambda: None)
     monkeypatch.setattr("agent.anthropic_adapter.is_claude_code_token_valid", lambda creds: False)
-    monkeypatch.setattr("builtins.input", lambda _prompt="": "sk-ant-oat01-manual-token")
-    monkeypatch.setattr("getpass.getpass", lambda _prompt="": "sk-ant-oat01-manual-token")
+    monkeypatch.setattr("builtins.input", lambda _prompt="": "mock-ant-oat01-manual-token")
+    monkeypatch.setattr("getpass.getpass", lambda _prompt="": "mock-ant-oat01-manual-token")
 
     from hermes_cli.main import _run_anthropic_oauth_flow
 
     assert _run_anthropic_oauth_flow(save_env_value) is True
 
     env_vars = load_env()
-    assert env_vars["ANTHROPIC_TOKEN"] == "sk-ant-oat01-manual-token"
+    assert env_vars["ANTHROPIC_TOKEN"] == "mock-ant-oat01-manual-token"
     output = capsys.readouterr().out
     assert "Setup-token saved" in output

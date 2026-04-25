@@ -242,7 +242,7 @@ Once a custom endpoint is configured, you can switch models mid-session:
 ```
 /model custom:qwen-2.5          # Switch to a model on your custom endpoint
 /model custom                    # Auto-detect the model from the endpoint
-/model openrouter:claude-sonnet-4 # Switch back to a cloud provider
+/model openrouter:claude-sonnet-4.6 # Switch back to a cloud provider
 ```
 
 If you have **named custom providers** configured (see below), use the triple syntax:
@@ -669,7 +669,7 @@ model:
 ```bash
 # Install and start
 pip install "litellm[proxy]"
-litellm --model anthropic/claude-sonnet-4 --port 4000
+litellm --model anthropic/claude-sonnet-4.6 --port 4000
 
 # Or with a config file for multiple models:
 litellm --config litellm_config.yaml --port 4000
@@ -830,7 +830,7 @@ Switch between them mid-session with the triple syntax:
 ```
 /model custom:local:qwen-2.5       # Use the "local" endpoint with qwen-2.5
 /model custom:work:llama3-70b      # Use the "work" endpoint with llama3-70b
-/model custom:anthropic-proxy:claude-sonnet-4  # Use the proxy
+/model custom:anthropic-proxy:claude-sonnet-4.6  # Use the proxy
 ```
 
 You can also select named custom providers from the interactive `hermes model` menu.
@@ -907,7 +907,7 @@ provider_routing:
   # data_collection: "deny"   # Exclude providers that may store/train on data
 ```
 
-**Shortcuts:** Append `:nitro` to any model name for throughput sorting (e.g., `anthropic/claude-sonnet-4:nitro`), or `:floor` for price sorting.
+**Shortcuts:** Append `:nitro` to any model name for throughput sorting (e.g., `anthropic/claude-sonnet-4.6:nitro`), or `:floor` for price sorting.
 
 ## Fallback Model
 
@@ -916,7 +916,7 @@ Configure a backup provider:model that Hermes switches to automatically when you
 ```yaml
 fallback_model:
   provider: openrouter                    # required
-  model: anthropic/claude-sonnet-4        # required
+  model: anthropic/claude-sonnet-4.6      # required
   # base_url: http://localhost:8000/v1    # optional, for custom endpoints
   # api_key_env: MY_CUSTOM_KEY           # optional, env var name for custom endpoint API key
 ```

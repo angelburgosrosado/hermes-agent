@@ -1,0 +1,6 @@
+streamlit
+sounddevice
+soundfile
+numpy
+requests
+pyyaml

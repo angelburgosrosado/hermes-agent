@@ -36,6 +36,7 @@
     "whatsapp-web.js": "^1.26.1-alpha.3"
   },
   "devDependencies": {
+    "@playwright/test": "^1.59.1",
     "@types/better-sqlite3": "^7.6.12",
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^22.15.2",

@@ -8,6 +8,7 @@ import streamlit as st
 import subprocess
 import json
 import os
+import sys
 import datetime
 import time
 import re
@@ -49,6 +50,13 @@ WARROOM_URL = os.environ.get("CC_WARROOM_URL", "http://localhost:7860")
 USAGE_DB = REPO_DIR / "usage" / "usage.db"
 
 OLLAMA_URL = "http://localhost:11434"
+
+# Cloud models for heavier workloads (Task Board, Ideas Lab, Website Builder).
+# Local 31B models on this box run CPU-only and take ~10min for a short reply,
+# so route agentic/structured-analysis work to Claude by default. Override via
+# env vars if you want a different target.
+CLOUD_TASK_MODEL = os.environ.get("CC_CLOUD_TASK_MODEL", "anthropic/claude-sonnet-4.6")
+CLOUD_FAST_MODEL = os.environ.get("CC_CLOUD_FAST_MODEL", "anthropic/claude-haiku-4.5")
 
 # Ensure directories exist
 for d in [TASKS_DIR, IDEAS_DIR, AUDIO_DIR, SCREENSHOTS_DIR, CAPTURES_DIR, EXPORTS_DIR, PROJECTS_DIR, AGENTS_DIR]:
@@ -286,7 +294,7 @@ if 'active_agents' not in st.session_state:
 if 'current_skill' not in st.session_state:
     st.session_state.current_skill = None
 if 'selected_model' not in st.session_state:
-    st.session_state.selected_model = "gemma4:31b"
+    st.session_state.selected_model = "llama3.2:latest"
 
 # ══════════════════════════════════════════════════════════════════════════════
 # HERMES INTEGRATION FUNCTIONS
@@ -322,15 +330,15 @@ def get_user_profile():
 
 def run_hermes(prompt, skill=None, model=None, timeout=300):
     """Run Hermes with a prompt and optional skill"""
-    cmd = ['hermes']
-    
+    cmd = ['hermes', 'chat', '-Q']
+
     if model:
         cmd.extend(['-m', model])
-    
+
     if skill:
         prompt = f"/skill {skill}\n{prompt}"
-    
-    cmd.append(prompt)
+
+    cmd.extend(['-q', prompt])
     
     try:
         result = subprocess.run(
@@ -352,15 +360,15 @@ def run_hermes(prompt, skill=None, model=None, timeout=300):
 
 def run_hermes_streaming(prompt, skill=None, model=None):
     """Run Hermes with streaming output (generator)"""
-    cmd = ['hermes']
-    
+    cmd = ['hermes', 'chat', '-Q']
+
     if model:
         cmd.extend(['-m', model])
-    
+
     if skill:
         prompt = f"/skill {skill}\n{prompt}"
-    
-    cmd.append(prompt)
+
+    cmd.extend(['-q', prompt])
     
     process = subprocess.Popen(
         cmd,
@@ -372,8 +380,24 @@ def run_hermes_streaming(prompt, skill=None, model=None):
     
     for line in iter(process.stdout.readline, ''):
         yield line
-    
+
     process.wait()
+
+def ask_cloud(prompt, skill=None, model=None, timeout=300):
+    """Run *prompt* via Hermes routed to a cloud model and return the response
+    text. Use this for heavy/agentic workloads (Task Board, Ideas Lab,
+    Website Builder) where local 31B+ models on CPU would time out. Returns a
+    string — on failure, a "❌ …" message rather than raising."""
+    result = run_hermes(
+        prompt,
+        skill=skill,
+        model=model or CLOUD_TASK_MODEL,
+        timeout=timeout,
+    )
+    if result.get('success'):
+        return (result.get('output') or '').strip()
+    err = (result.get('error') or '').strip() or 'Hermes call failed'
+    return f"❌ {err}"
 
 def _parse_skill_file(skill_path: Path, root: Path, source: str):
     skill_name = skill_path.parent.name
@@ -557,9 +581,9 @@ def get_ollama_models():
             return [m['name'] for m in r.json().get('models', [])]
     except:
         pass
-    return ['gemma4:31b', 'llama3.3:latest', 'gpt-oss:120b']
+    return ['llama3.2:latest', 'gemma3:latest', 'gemma4:31b']
 
-def query_ollama(prompt, model="gemma4:31b", system="You are a helpful assistant.", stream=False):
+def query_ollama(prompt, model="llama3.2:latest", system="You are a helpful assistant.", stream=False):
     """Query local Ollama model"""
     try:
         r = requests.post(
@@ -570,7 +594,7 @@ def query_ollama(prompt, model="gemma4:31b", system="You are a helpful assistant
                 "system": system,
                 "stream": stream
             },
-            timeout=120
+            timeout=300
         )
         if r.status_code == 200:
             return r.json().get('response', '')
@@ -597,31 +621,445 @@ Execute this task and report the results."""
 # CAPTURE FUNCTIONS
 # ══════════════════════════════════════════════════════════════════════════════
 
+_EXCLUDE_DEVICE_HINTS = ("iphone", "ipad", "airpods", "microsoft teams", "zoom")
+
+
+def _input_device_candidates(devices, input_devices):
+    """Yield device indices to try, in priority order.
+
+    1. CC_AUDIO_INPUT_DEVICE env override (explicit — trust the user)
+    2. OS default input, IF its name doesn't look flaky on macOS
+    3. Any remaining input devices whose names don't look flaky
+    4. Everything else as a last-ditch attempt
+
+    Flaky = devices like "iPhone Microphone" (Continuity) that enumerate
+    and are often the OS default but fail to open with PortAudio
+    paInternalError when the phone isn't actively streaming.
+    """
+    seen: set[int] = set()
+
+    def _yield(idx):
+        if idx is not None and idx in input_devices and idx not in seen:
+            seen.add(idx)
+            return [idx]
+        return []
+
+    pref = os.environ.get("CC_AUDIO_INPUT_DEVICE", "").strip()
+    if pref:
+        if pref.isdigit():
+            yield from _yield(int(pref))
+        else:
+            for i in input_devices:
+                if pref.lower() in devices[i]['name'].lower():
+                    yield from _yield(i)
+                    break
+
+    default_idx: int | None = None
+    try:
+        default = sd.query_devices(kind='input')
+        if isinstance(default, dict):
+            default_idx = default.get('index')
+    except Exception:
+        pass
+
+    def _is_flaky(idx):
+        name = devices[idx]['name'].lower()
+        return any(h in name for h in _EXCLUDE_DEVICE_HINTS)
+
+    # OS default — but only if it looks reliable
+    if default_idx is not None and not _is_flaky(default_idx):
+        yield from _yield(default_idx)
+
+    # Preferred: reliable-looking devices
+    for i in input_devices:
+        if not _is_flaky(i):
+            yield from _yield(i)
+
+    # Last resort: include flaky ones too (covers the edge case where the
+    # only available mic happens to match a blocked hint)
+    for i in input_devices:
+        yield from _yield(i)
+
+
 def record_audio(duration=10, sample_rate=16000):
-    """Record audio from microphone"""
-    recording = sd.rec(int(duration * sample_rate), samplerate=sample_rate, channels=1, dtype='float32')
-    sd.wait()
-    return recording, sample_rate
+    """Record audio from microphone with robust device handling.
+
+    Probes candidates in priority order and uses the first one that
+    successfully opens an input stream. Returns (recording, sample_rate)
+    or (None, None) on failure. The failure path lists every device it
+    tried and why so you can diagnose without guessing.
+    """
+    import streamlit as st
+    tried: list[tuple[str, str]] = []  # (device name, error)
+    devices = []
+    input_devices: list[int] = []
+    try:
+        devices = sd.query_devices()
+        input_devices = [i for i, d in enumerate(devices) if d['max_input_channels'] > 0]
+        if not input_devices:
+            st.error("No audio input device detected on this system.")
+            return None, None
+
+        for candidate in _input_device_candidates(devices, input_devices):
+            name = devices[candidate]['name']
+            try:
+                sd.check_input_settings(
+                    device=candidate,
+                    samplerate=sample_rate,
+                    channels=1,
+                    dtype='float32',
+                )
+                recording = sd.rec(
+                    int(duration * sample_rate),
+                    samplerate=sample_rate,
+                    channels=1,
+                    dtype='float32',
+                    device=candidate,
+                )
+                sd.wait()
+                if recording is None or getattr(recording, "size", 0) == 0:
+                    tried.append((name, "returned no samples"))
+                    continue
+                return recording, sample_rate
+            except Exception as probe_err:
+                tried.append((name, str(probe_err)))
+                continue
+
+        # Nothing worked — report everything we tried, and surface the
+        # macOS-specific diagnosis when every candidate fails the same way
+        # (paInternalError on every device = no mic access for this process,
+        # typically because Streamlit was launched by launchd without a
+        # responsible GUI app attached for TCC).
+        available = ", ".join(f"[{i}] {devices[i]['name']}" for i in input_devices)
+        lines = "\n".join(f"  • {n}: {err}" for n, err in tried) or "  (nothing attempted)"
+        all_internal = tried and all("PaErrorCode -9986" in e or "Internal PortAudio" in e for _, e in tried)
+        macos_hint = ""
+        if sys.platform == "darwin" and all_internal:
+            ppid = os.getppid()
+            try:
+                parent_cmd = subprocess.run(
+                    ["ps", "-o", "comm=", "-p", str(ppid)],
+                    capture_output=True, text=True, timeout=2,
+                ).stdout.strip()
+            except Exception:
+                parent_cmd = "?"
+            macos_hint = (
+                "\n\nEvery device returned PortAudio paInternalError, which on macOS "
+                "means this process has no microphone permission. "
+                f"Parent process is {parent_cmd!r} (pid {ppid}); "
+                "if that's `launchd`, Streamlit was started as a detached "
+                "background process and macOS can't attach a permission prompt.\n\n"
+                "Fix: kill the current Streamlit and relaunch from a GUI terminal "
+                "(Terminal.app, iTerm, or a VS Code integrated terminal):\n"
+                "  cd commandcenter && bash launch.sh\n\n"
+                "On first record attempt, macOS will prompt for mic access. "
+                "After granting, reload this page."
+            )
+        st.error(
+            "Audio recording failed on every candidate device:\n"
+            f"{lines}\n\n"
+            f"Available inputs: {available}\n"
+            "Override with `export CC_AUDIO_INPUT_DEVICE=<index or name>`."
+            f"{macos_hint}"
+        )
+        return None, None
+    except Exception as e:
+        st.error(f"Audio recording failed: {e}")
+        return None, None
 
 def save_audio(recording, sample_rate, filename):
-    """Save audio to file"""
+    """Save audio to a WAV file under AUDIO_DIR.
+
+    Returns the output Path, or None if the recording is missing or empty.
+    Normalizes 1D arrays to (frames, 1) because older soundfile versions
+    index ``data.shape[1]`` unconditionally.
+    """
+    if recording is None or getattr(recording, "size", 0) == 0:
+        return None
+    data = recording
+    if hasattr(data, "ndim") and data.ndim == 1:
+        data = data.reshape(-1, 1)
     filepath = AUDIO_DIR / filename
-    sf.write(str(filepath), recording, sample_rate)
+    sf.write(str(filepath), data, sample_rate)
     return filepath
 
-def transcribe_audio(filepath):
-    """Transcribe audio using local Whisper"""
+def transcribe_audio(filepath, model="base", language="en"):
+    """Transcribe audio using local Whisper.
+
+    Model choices trade speed for accuracy:
+      tiny/base  — fast, fine for short clear memos
+      small      — decent for meetings with one or two speakers
+      medium     — better for multi-speaker meetings with accents
+      large      — slowest, best accuracy
+
+    Timeout scales with file duration so long meetings don't time out.
+    """
     try:
-        result = subprocess.run(
-            ['whisper', str(filepath), '--model', 'small', '--language', 'en', '--output_format', 'txt', '--output_dir', str(filepath.parent)],
-            capture_output=True, text=True, timeout=120
+        try:
+            info = sf.info(str(filepath))
+            duration_s = float(info.frames) / float(info.samplerate) if info.samplerate else 0
+        except Exception:
+            duration_s = 60
+        # Whisper is roughly realtime-ish on CPU with base; give a generous
+        # multiplier for larger models and a 2 min floor for tiny files.
+        per_model = {"tiny": 2, "base": 3, "small": 6, "medium": 12, "large": 20}
+        timeout = max(120, int(duration_s * per_model.get(model, 6)))
+        subprocess.run(
+            ['whisper', str(filepath),
+             '--model', model,
+             '--language', language,
+             '--output_format', 'txt',
+             '--output_dir', str(filepath.parent)],
+            capture_output=True, text=True, timeout=timeout
         )
         txt_file = filepath.with_suffix('.txt')
         if txt_file.exists():
             return txt_file.read_text().strip()
         return "Transcription completed but no output file found"
+    except subprocess.TimeoutExpired:
+        return f"Error: whisper timed out (model={model}). Try a smaller model or split the file."
+    except FileNotFoundError:
+        return "Error: whisper CLI not found. Install with `pip install openai-whisper`."
     except Exception as e:
         return f"Error: {str(e)}"
+
+
+# ── Streaming recorder (open-ended start/stop, no fixed duration) ─────────────
+#
+# The previous implementation blocked for a preset duration — useless for
+# meetings. This version opens an sd.InputStream, appends frames via a
+# callback, and lives in st.session_state so it survives Streamlit reruns
+# (which re-execute the script top-to-bottom in the same process).
+
+def start_recording_stream(sample_rate=16000):
+    """Open a non-blocking input stream. Returns a handle dict or None."""
+    try:
+        devices = sd.query_devices()
+        input_devices = [i for i, d in enumerate(devices) if d['max_input_channels'] > 0]
+        if not input_devices:
+            st.error("No audio input device detected on this system.")
+            return None
+
+        buf: list = []
+        lock = threading.Lock()
+
+        def _callback(indata, frames, time_info, status):
+            with lock:
+                buf.append(indata.copy())
+
+        last_err = None
+        for candidate in _input_device_candidates(devices, input_devices):
+            name = devices[candidate]['name']
+            try:
+                sd.check_input_settings(
+                    device=candidate, samplerate=sample_rate,
+                    channels=1, dtype='float32',
+                )
+                stream = sd.InputStream(
+                    samplerate=sample_rate, channels=1, dtype='float32',
+                    device=candidate, callback=_callback,
+                )
+                stream.start()
+                return {
+                    "stream": stream,
+                    "buf": buf,
+                    "lock": lock,
+                    "started_at": time.time(),
+                    "sample_rate": sample_rate,
+                    "device_name": name,
+                }
+            except Exception as e:
+                last_err = f"{name}: {e}"
+                continue
+        st.error(f"Could not open any input device. Last error: {last_err}")
+        return None
+    except Exception as e:
+        st.error(f"Recording failed to start: {e}")
+        return None
+
+
+def stop_recording_stream(handle, out_path):
+    """Close the stream and flush buffered frames to a WAV file.
+
+    Returns (path, duration_seconds) or (None, 0) on failure.
+    """
+    if not handle:
+        return None, 0
+    stream = handle.get("stream")
+    try:
+        if stream is not None:
+            stream.stop()
+            stream.close()
+    except Exception:
+        pass
+    with handle["lock"]:
+        chunks = list(handle["buf"])
+    if not chunks:
+        return None, 0
+    data = np.concatenate(chunks, axis=0)
+    if data.ndim == 1:
+        data = data.reshape(-1, 1)
+    sr = handle["sample_rate"]
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    sf.write(str(out_path), data, sr)
+    duration = data.shape[0] / sr
+    return out_path, duration
+
+
+def convert_to_wav(src_path, dest_path, sample_rate=16000):
+    """Convert any ffmpeg-readable audio/video file to a mono 16kHz WAV."""
+    try:
+        subprocess.run(
+            ['ffmpeg', '-y', '-i', str(src_path),
+             '-ac', '1', '-ar', str(sample_rate),
+             '-vn', str(dest_path)],
+            capture_output=True, text=True, check=True, timeout=600,
+        )
+        return dest_path if dest_path.exists() else None
+    except FileNotFoundError:
+        st.error("ffmpeg is not installed. `brew install ffmpeg` to enable uploads.")
+        return None
+    except subprocess.CalledProcessError as e:
+        st.error(f"ffmpeg failed: {e.stderr[-400:] if e.stderr else e}")
+        return None
+
+
+# ── Recording metadata (JSON sidecar per WAV) ─────────────────────────────────
+
+def meta_path(audio_path):
+    return Path(audio_path).with_suffix('.json')
+
+
+def load_recording_meta(audio_path):
+    p = meta_path(audio_path)
+    if p.exists():
+        try:
+            return json.loads(p.read_text())
+        except Exception:
+            pass
+    # Synthesize minimal metadata from filename conventions
+    name = Path(audio_path).name
+    rtype = "meeting" if name.startswith("meeting_") else "memo"
+    return {
+        "id": Path(audio_path).stem,
+        "type": rtype,
+        "title": "",
+        "attendees": "",
+        "tags": [],
+        "created": datetime.datetime.fromtimestamp(Path(audio_path).stat().st_mtime).isoformat(),
+        "duration_sec": 0,
+        "model": "",
+        "analyses": {},
+    }
+
+
+def save_recording_meta(audio_path, meta):
+    meta_path(audio_path).write_text(json.dumps(meta, indent=2))
+
+
+# ── Analysis prompts (memo vs. meeting) ───────────────────────────────────────
+
+MEETING_ANALYSIS_PROMPT = """You are analyzing a meeting transcript. Produce clean markdown with these sections, in order:
+
+## Summary
+3-6 bullets covering the purpose, key points, and outcome.
+
+## Action Items
+A markdown table with columns: Owner | Action | Deadline (use "—" if unknown).
+Only include items that are actual commitments, not hypotheticals.
+
+## Decisions
+Bulleted list of decisions that were made. If none, write "None".
+
+## Open Questions / Follow-ups
+Bulleted list of unresolved questions or follow-ups. If none, write "None".
+
+## Topics Discussed
+Bulleted list of the main topics, in order they came up.
+
+Context:
+- Title: {title}
+- Attendees: {attendees}
+- Tags: {tags}
+
+Transcript:
+{transcript}
+"""
+
+MEMO_SUMMARY_PROMPT = """Summarize this voice memo in 3-5 crisp bullets. Keep concrete details (numbers, names, dates). Don't pad.
+
+Memo:
+{transcript}
+"""
+
+TASK_EXTRACT_PROMPT = """Extract every actionable task from the text below. Return ONLY a JSON array — no prose, no markdown fences — where each item has:
+  title    — short imperative sentence
+  priority — one of: High, Medium, Low
+  notes    — optional context (empty string if none)
+
+If no tasks, return [].
+
+Text:
+{transcript}
+"""
+
+
+def analyze_meeting(transcript, title="", attendees="", tags="", model=None):
+    if not transcript or transcript.startswith("Error"):
+        return "_No transcript to analyze._"
+    prompt = MEETING_ANALYSIS_PROMPT.format(
+        title=title or "(untitled)",
+        attendees=attendees or "(unspecified)",
+        tags=tags or "(none)",
+        transcript=transcript,
+    )
+    return query_ollama(prompt, model=model or st.session_state.selected_model)
+
+
+def summarize_memo(transcript, model=None):
+    if not transcript or transcript.startswith("Error"):
+        return "_No transcript to summarize._"
+    return query_ollama(
+        MEMO_SUMMARY_PROMPT.format(transcript=transcript),
+        model=model or st.session_state.selected_model,
+    )
+
+
+def extract_tasks_from_transcript(transcript, model=None):
+    """Call the LLM, parse a JSON array of tasks, return list[dict]."""
+    if not transcript or transcript.startswith("Error"):
+        return []
+    raw = query_ollama(
+        TASK_EXTRACT_PROMPT.format(transcript=transcript),
+        model=model or st.session_state.selected_model,
+    )
+    # Model may wrap in ``` or prefix with prose — be forgiving.
+    text = raw.strip()
+    if text.startswith("```"):
+        text = re.sub(r"^```[a-zA-Z]*\n|\n```$", "", text)
+    start = text.find('[')
+    end = text.rfind(']')
+    if start == -1 or end == -1:
+        return []
+    try:
+        items = json.loads(text[start:end + 1])
+        out = []
+        for it in items if isinstance(items, list) else []:
+            if not isinstance(it, dict):
+                continue
+            title = (it.get("title") or "").strip()
+            if not title:
+                continue
+            pri = (it.get("priority") or "Medium").strip().capitalize()
+            emoji = {"High": "🔴", "Medium": "🟡", "Low": "🟢"}.get(pri, "🟡")
+            out.append({
+                "title": title,
+                "priority": f"{emoji} {pri}",
+                "notes": (it.get("notes") or "").strip(),
+            })
+        return out
+    except Exception:
+        return []
 
 def take_screenshot():
     """Take screenshot using macOS screencapture"""
@@ -682,12 +1120,16 @@ with st.sidebar:
     
     # Model selector
     models = get_ollama_models()
-    all_models = models + ["anthropic/claude-opus-4-5-20251101", "anthropic/claude-sonnet-4", "google/gemini-2.5-pro"]
+    all_models = models + ["anthropic/claude-opus-4.7", "anthropic/claude-sonnet-4.6", "anthropic/claude-haiku-4.5", "google/gemini-2.5-pro"]
     
+    try:
+        _default_idx = all_models.index(st.session_state.selected_model)
+    except ValueError:
+        _default_idx = all_models.index("llama3.2:latest") if "llama3.2:latest" in all_models else 0
     selected_model = st.selectbox(
         "🤖 Active Model",
         all_models,
-        index=0 if 'gemma4:31b' in all_models else 0
+        index=_default_idx,
     )
     st.session_state.selected_model = selected_model
     
@@ -1097,10 +1539,10 @@ For each subtask, provide:
 4. Dependencies (if any)
 
 Format as a numbered list."""
-                
-                result = query_ollama(prompt, model=st.session_state.selected_model)
+
+                result = ask_cloud(prompt)
                 st.markdown(result)
-                
+
                 if st.button("📥 Import as Tasks"):
                     st.info("Feature: Parse and import subtasks")
     
@@ -1129,7 +1571,7 @@ Format as a numbered list."""
                 with c2:
                     if st.button("🤖", key=f"agent_{task['id']}", help="Send to Hermes"):
                         with st.spinner("Hermes working..."):
-                            result = run_hermes(f"Complete this task: {task['title']}")
+                            result = run_hermes(f"Complete this task: {task['title']}", model=CLOUD_TASK_MODEL)
                             task['notes'] = result['output']
                             task['status'] = 'completed'
                             save_tasks(tasks)
@@ -1174,75 +1616,456 @@ Format as a numbered list."""
 
 elif page == "🎤 Capture":
     st.markdown("### 🎤 Audio & Screen Capture")
-    
-    tab1, tab2, tab3 = st.tabs(["🎙️ Voice Memo", "📸 Screenshot", "🎬 Screen Recording"])
-    
+
+    tab1, tab2, tab3 = st.tabs(["🎙️ Audio", "📸 Screenshot", "🎬 Screen Recording"])
+
     with tab1:
-        st.markdown("#### Record Voice Memo")
-        st.markdown("Record → Transcribe with Whisper → Optionally process with Hermes")
-        
-        col1, col2 = st.columns(2)
-        with col1:
-            duration = st.slider("Duration (seconds)", 5, 120, 10)
-        with col2:
-            process_with_hermes = st.checkbox("🤖 Process with Hermes after transcription")
-            hermes_action = st.selectbox("Action", ["Summarize", "Extract tasks", "Analyze", "Custom"]) if process_with_hermes else None
-        
-        if st.button("🎙️ Start Recording", type="primary", use_container_width=True):
-            progress = st.progress(0)
-            status = st.empty()
-            
-            status.text(f"🎙️ Recording for {duration} seconds...")
-            recording, sr = record_audio(duration)
-            progress.progress(33)
-            
-            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-            filename = f"voice_memo_{timestamp}.wav"
-            filepath = save_audio(recording, sr, filename)
-            status.text("📝 Transcribing with Whisper...")
-            progress.progress(66)
-            
-            transcript = transcribe_audio(filepath)
-            progress.progress(100)
-            status.text("✅ Complete!")
-            
-            st.markdown("**Transcript:**")
-            st.text_area("", transcript, height=150, key="transcript_display")
-            
-            if process_with_hermes and transcript:
-                with st.spinner(f"Processing: {hermes_action}..."):
-                    if hermes_action == "Summarize":
-                        prompt = f"Summarize this voice memo:\n\n{transcript}"
-                    elif hermes_action == "Extract tasks":
-                        prompt = f"Extract actionable tasks from this voice memo:\n\n{transcript}"
-                    elif hermes_action == "Analyze":
-                        prompt = f"Analyze this voice memo and provide insights:\n\n{transcript}"
+        # ── Sub-tabs for audio workflows ──────────────────────────────────
+        a_memo, a_meeting, a_library, a_upload = st.tabs(
+            ["📝 Memo", "🎥 Meeting", "📂 Library", "📎 Upload"]
+        )
+
+        WHISPER_MODELS = ["tiny", "base", "small", "medium", "large"]
+
+        # Shared: recording state
+        if "rec_handle" not in st.session_state:
+            st.session_state.rec_handle = None
+        if "rec_mode" not in st.session_state:
+            st.session_state.rec_mode = None  # "memo" or "meeting"
+        if "rec_last" not in st.session_state:
+            st.session_state.rec_last = None  # dict: path, duration, meta
+
+        def _fmt_elapsed(seconds):
+            seconds = int(seconds)
+            h, rem = divmod(seconds, 3600)
+            m, s = divmod(rem, 60)
+            return f"{h:d}:{m:02d}:{s:02d}" if h else f"{m:d}:{s:02d}"
+
+        # ── MEMO ──────────────────────────────────────────────────────────
+        with a_memo:
+            st.markdown("#### Quick Voice Memo")
+            st.caption("Hit record, speak, hit stop. Transcribed with Whisper.")
+
+            memo_model = st.selectbox(
+                "Whisper model",
+                WHISPER_MODELS, index=1,
+                help="tiny/base are fastest; use small+ for noisier audio",
+                key="memo_whisper_model",
+            )
+
+            is_recording = (
+                st.session_state.rec_handle is not None
+                and st.session_state.rec_mode == "memo"
+            )
+
+            c1, c2 = st.columns(2)
+            with c1:
+                if not is_recording and st.button(
+                    "🔴 Start Recording", type="primary", use_container_width=True,
+                    key="memo_start",
+                ):
+                    handle = start_recording_stream()
+                    if handle:
+                        st.session_state.rec_handle = handle
+                        st.session_state.rec_mode = "memo"
+                        st.rerun()
+            with c2:
+                if is_recording and st.button(
+                    "⏹ Stop & Transcribe", type="primary", use_container_width=True,
+                    key="memo_stop",
+                ):
+                    ts = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+                    out = AUDIO_DIR / f"memo_{ts}.wav"
+                    path, dur = stop_recording_stream(st.session_state.rec_handle, out)
+                    st.session_state.rec_handle = None
+                    st.session_state.rec_mode = None
+                    if path is None:
+                        st.error("No audio captured.")
                     else:
-                        prompt = st.text_input("Custom prompt:", value=f"Process this: {transcript}")
-                    
-                    result = query_ollama(prompt, model=st.session_state.selected_model)
-                    st.markdown("**Hermes Analysis:**")
-                    st.markdown(f'<div class="hermes-response">{result}</div>', unsafe_allow_html=True)
-        
-        # Recent recordings
-        st.markdown("---")
-        st.markdown("#### Recent Recordings")
-        audio_files = sorted(AUDIO_DIR.glob("*.wav"), reverse=True)[:5]
-        for af in audio_files:
-            col1, col2, col3 = st.columns([2, 1, 1])
-            with col1:
-                st.audio(str(af))
-            with col2:
-                txt_file = af.with_suffix('.txt')
-                if txt_file.exists():
-                    if st.button("📄", key=f"view_{af.name}", help="View transcript"):
-                        st.text(txt_file.read_text()[:500])
-            with col3:
-                if st.button("🤖", key=f"process_{af.name}", help="Process with Hermes"):
-                    txt_file = af.with_suffix('.txt')
-                    if txt_file.exists():
-                        st.session_state.process_audio = txt_file.read_text()
-    
+                        with st.spinner(f"Transcribing ({memo_model})…"):
+                            transcript = transcribe_audio(path, model=memo_model)
+                        meta = load_recording_meta(path)
+                        meta.update({
+                            "type": "memo",
+                            "duration_sec": round(dur, 1),
+                            "model": memo_model,
+                            "created": datetime.datetime.now().isoformat(),
+                        })
+                        save_recording_meta(path, meta)
+                        st.session_state.rec_last = {
+                            "path": str(path), "duration": dur,
+                            "transcript": transcript, "meta": meta,
+                        }
+                        st.rerun()
+
+            if is_recording:
+                elapsed = time.time() - st.session_state.rec_handle["started_at"]
+                st.markdown(
+                    f"<h2 style='color:#e74c3c; margin-top:12px;'>🔴 {_fmt_elapsed(elapsed)}</h2>"
+                    f"<div style='color:#9ca3af;'>Device: {st.session_state.rec_handle['device_name']}</div>",
+                    unsafe_allow_html=True,
+                )
+
+            # Post-recording panel
+            last = st.session_state.rec_last
+            if last and last["meta"].get("type") == "memo" and not is_recording:
+                st.markdown("---")
+                st.markdown(f"**Saved:** `{Path(last['path']).name}` · {_fmt_elapsed(last['duration'])}")
+                st.audio(last["path"])
+                st.markdown("**Transcript**")
+                st.text_area(" ", last["transcript"], height=160, key="memo_transcript", label_visibility="collapsed")
+                b1, b2, b3 = st.columns(3)
+                with b1:
+                    if st.button("📝 Summarize", key="memo_summarize"):
+                        with st.spinner("Summarizing…"):
+                            summary = summarize_memo(last["transcript"])
+                        meta = last["meta"]
+                        meta.setdefault("analyses", {})["summary"] = summary
+                        save_recording_meta(last["path"], meta)
+                        st.markdown(summary)
+                with b2:
+                    if st.button("✅ Extract tasks", key="memo_extract"):
+                        with st.spinner("Extracting tasks…"):
+                            items = extract_tasks_from_transcript(last["transcript"])
+                        if not items:
+                            st.info("No actionable tasks found.")
+                        else:
+                            tasks = load_tasks()
+                            now = datetime.datetime.now().isoformat()
+                            for it in items:
+                                tasks.append({
+                                    "id": (max((t["id"] for t in tasks), default=0) + 1),
+                                    "title": it["title"],
+                                    "priority": it["priority"],
+                                    "status": "pending",
+                                    "created": now,
+                                    "notes": it["notes"],
+                                })
+                            save_tasks(tasks)
+                            st.success(f"Added {len(items)} task(s) to the board.")
+                            for it in items:
+                                st.markdown(f"- {it['priority']} {it['title']}")
+                with b3:
+                    if st.button("🗑 Clear", key="memo_clear"):
+                        st.session_state.rec_last = None
+                        st.rerun()
+
+        # ── MEETING ───────────────────────────────────────────────────────
+        with a_meeting:
+            st.markdown("#### Record a Meeting")
+            st.caption("Open-ended recording with structured analysis: summary, action items, decisions, follow-ups.")
+
+            mt_title = st.text_input("Title", key="meeting_title", placeholder="e.g., Marketing sync — 2026-04-24")
+            mt_attendees = st.text_input("Attendees", key="meeting_attendees", placeholder="Alice, Bob, Carol")
+            mt_tags = st.text_input("Tags", key="meeting_tags", placeholder="comma,separated,tags")
+            mt_model = st.selectbox(
+                "Whisper model",
+                WHISPER_MODELS, index=2,
+                help="`small` is a good default for meetings; `medium`/`large` for noisy/multi-speaker",
+                key="meeting_whisper_model",
+            )
+
+            is_recording = (
+                st.session_state.rec_handle is not None
+                and st.session_state.rec_mode == "meeting"
+            )
+
+            c1, c2 = st.columns(2)
+            with c1:
+                if not is_recording and st.button(
+                    "🔴 Start Meeting", type="primary", use_container_width=True,
+                    key="mt_start",
+                ):
+                    handle = start_recording_stream()
+                    if handle:
+                        st.session_state.rec_handle = handle
+                        st.session_state.rec_mode = "meeting"
+                        st.session_state._pending_meeting_meta = {
+                            "title": mt_title,
+                            "attendees": mt_attendees,
+                            "tags": [t.strip() for t in mt_tags.split(",") if t.strip()],
+                        }
+                        st.rerun()
+            with c2:
+                if is_recording and st.button(
+                    "⏹ Stop & Analyze", type="primary", use_container_width=True,
+                    key="mt_stop",
+                ):
+                    ts = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+                    out = AUDIO_DIR / f"meeting_{ts}.wav"
+                    path, dur = stop_recording_stream(st.session_state.rec_handle, out)
+                    st.session_state.rec_handle = None
+                    st.session_state.rec_mode = None
+                    if path is None:
+                        st.error("No audio captured.")
+                    else:
+                        with st.spinner(f"Transcribing ({mt_model}) — this can take a while for long meetings…"):
+                            transcript = transcribe_audio(path, model=mt_model)
+                        pending = st.session_state.pop("_pending_meeting_meta", {})
+                        meta = load_recording_meta(path)
+                        meta.update({
+                            "type": "meeting",
+                            "title": pending.get("title", ""),
+                            "attendees": pending.get("attendees", ""),
+                            "tags": pending.get("tags", []),
+                            "duration_sec": round(dur, 1),
+                            "model": mt_model,
+                            "created": datetime.datetime.now().isoformat(),
+                        })
+                        save_recording_meta(path, meta)
+                        st.session_state.rec_last = {
+                            "path": str(path), "duration": dur,
+                            "transcript": transcript, "meta": meta,
+                        }
+                        st.rerun()
+
+            if is_recording:
+                elapsed = time.time() - st.session_state.rec_handle["started_at"]
+                pend = st.session_state.get("_pending_meeting_meta", {})
+                st.markdown(
+                    f"<h2 style='color:#e74c3c; margin-top:12px;'>🔴 {_fmt_elapsed(elapsed)}</h2>"
+                    f"<div style='color:#9ca3af;'>"
+                    f"{pend.get('title') or '(untitled meeting)'} · "
+                    f"Device: {st.session_state.rec_handle['device_name']}"
+                    f"</div>",
+                    unsafe_allow_html=True,
+                )
+
+            last = st.session_state.rec_last
+            if last and last["meta"].get("type") == "meeting" and not is_recording:
+                st.markdown("---")
+                meta = last["meta"]
+                st.markdown(
+                    f"**{meta.get('title') or Path(last['path']).name}** · "
+                    f"{_fmt_elapsed(last['duration'])} · "
+                    f"{meta.get('attendees') or '(no attendees)'}"
+                )
+                st.audio(last["path"])
+                with st.expander("Transcript", expanded=False):
+                    st.text_area(" ", last["transcript"], height=240,
+                                 key="meeting_transcript", label_visibility="collapsed")
+
+                if "analysis" not in meta.get("analyses", {}):
+                    if st.button("🧠 Run full meeting analysis", type="primary", key="mt_analyze"):
+                        with st.spinner("Analyzing meeting (summary, action items, decisions, follow-ups)…"):
+                            analysis = analyze_meeting(
+                                last["transcript"],
+                                title=meta.get("title", ""),
+                                attendees=meta.get("attendees", ""),
+                                tags=", ".join(meta.get("tags", [])),
+                            )
+                        meta.setdefault("analyses", {})["analysis"] = analysis
+                        save_recording_meta(last["path"], meta)
+                        st.rerun()
+                else:
+                    st.markdown("### 🧠 Meeting Analysis")
+                    st.markdown(meta["analyses"]["analysis"])
+                    if st.button("✅ Extract action items into tasks", key="mt_extract"):
+                        with st.spinner("Extracting action items…"):
+                            items = extract_tasks_from_transcript(last["transcript"])
+                        if not items:
+                            st.info("No actionable tasks found.")
+                        else:
+                            tasks = load_tasks()
+                            now = datetime.datetime.now().isoformat()
+                            mt_prefix = f"[{meta.get('title') or 'Meeting'}] "
+                            for it in items:
+                                tasks.append({
+                                    "id": (max((t["id"] for t in tasks), default=0) + 1),
+                                    "title": mt_prefix + it["title"],
+                                    "priority": it["priority"],
+                                    "status": "pending",
+                                    "created": now,
+                                    "notes": it["notes"],
+                                })
+                            save_tasks(tasks)
+                            st.success(f"Added {len(items)} task(s) to the board.")
+
+        # ── LIBRARY ───────────────────────────────────────────────────────
+        with a_library:
+            st.markdown("#### Recording Library")
+            st.caption("Search, replay, re-transcribe, re-analyze.")
+
+            fcol1, fcol2, fcol3 = st.columns([2, 1, 1])
+            with fcol1:
+                search = st.text_input("🔍 Search", key="lib_search",
+                                       placeholder="title, attendee, tag, or text in transcript")
+            with fcol2:
+                type_filter = st.selectbox("Type", ["all", "meeting", "memo"], key="lib_type")
+            with fcol3:
+                sort_by = st.selectbox("Sort", ["newest", "oldest", "longest"], key="lib_sort")
+
+            audio_files = list(AUDIO_DIR.glob("*.wav"))
+            # Match search against title/attendees/tags/transcript
+            def _match(af):
+                if type_filter != "all":
+                    m = load_recording_meta(af)
+                    if m.get("type") != type_filter:
+                        return False
+                if not search:
+                    return True
+                needle = search.lower()
+                m = load_recording_meta(af)
+                hay = " ".join([
+                    m.get("title", ""), m.get("attendees", ""),
+                    " ".join(m.get("tags", [])),
+                ]).lower()
+                if needle in hay:
+                    return True
+                txt = af.with_suffix('.txt')
+                if txt.exists() and needle in txt.read_text().lower():
+                    return True
+                return False
+
+            audio_files = [af for af in audio_files if _match(af)]
+            if sort_by == "newest":
+                audio_files.sort(key=lambda p: p.stat().st_mtime, reverse=True)
+            elif sort_by == "oldest":
+                audio_files.sort(key=lambda p: p.stat().st_mtime)
+            else:
+                audio_files.sort(
+                    key=lambda p: load_recording_meta(p).get("duration_sec", 0),
+                    reverse=True,
+                )
+
+            if not audio_files:
+                st.info("No recordings match. Try clearing the filters.")
+
+            for af in audio_files[:30]:
+                meta = load_recording_meta(af)
+                icon = "🎥" if meta.get("type") == "meeting" else "📝"
+                title = meta.get("title") or af.stem
+                dur = meta.get("duration_sec") or 0
+                label = f"{icon} {title} · {_fmt_elapsed(dur)} · {meta.get('created', '')[:16]}"
+                with st.expander(label):
+                    st.audio(str(af))
+                    txt = af.with_suffix('.txt')
+                    transcript = txt.read_text() if txt.exists() else ""
+                    if meta.get("attendees"):
+                        st.markdown(f"**Attendees:** {meta['attendees']}")
+                    if meta.get("tags"):
+                        st.markdown("**Tags:** " + ", ".join(meta["tags"]))
+                    if transcript:
+                        with st.expander("Transcript", expanded=False):
+                            st.text_area(" ", transcript, height=200,
+                                         key=f"tr_{af.name}", label_visibility="collapsed")
+                    for aname, atext in (meta.get("analyses") or {}).items():
+                        with st.expander(f"🧠 {aname.replace('_', ' ').title()}", expanded=False):
+                            st.markdown(atext)
+
+                    bcol1, bcol2, bcol3, bcol4 = st.columns(4)
+                    with bcol1:
+                        retr_model = st.selectbox(
+                            "Re-transcribe",
+                            WHISPER_MODELS,
+                            index=WHISPER_MODELS.index(meta.get("model") or "base")
+                                if (meta.get("model") in WHISPER_MODELS) else 1,
+                            key=f"retr_m_{af.name}",
+                        )
+                    with bcol2:
+                        if st.button("🔁 Run", key=f"retr_{af.name}"):
+                            with st.spinner(f"Transcribing ({retr_model})…"):
+                                new_tr = transcribe_audio(af, model=retr_model)
+                            meta["model"] = retr_model
+                            save_recording_meta(af, meta)
+                            st.success("Transcribed. Refresh to see updated transcript.")
+                    with bcol3:
+                        analysis_label = "🧠 Re-analyze" if "analysis" in (meta.get("analyses") or {}) else "🧠 Analyze"
+                        if st.button(analysis_label, key=f"ana_{af.name}"):
+                            if not transcript:
+                                st.warning("No transcript yet — re-transcribe first.")
+                            else:
+                                with st.spinner("Analyzing…"):
+                                    if meta.get("type") == "meeting":
+                                        res = analyze_meeting(
+                                            transcript,
+                                            title=meta.get("title", ""),
+                                            attendees=meta.get("attendees", ""),
+                                            tags=", ".join(meta.get("tags", [])),
+                                        )
+                                    else:
+                                        res = summarize_memo(transcript)
+                                meta.setdefault("analyses", {})["analysis" if meta.get("type") == "meeting" else "summary"] = res
+                                save_recording_meta(af, meta)
+                                st.rerun()
+                    with bcol4:
+                        if st.button("🗑 Delete", key=f"del_{af.name}"):
+                            for p in [af, af.with_suffix('.txt'), meta_path(af)]:
+                                try:
+                                    if p.exists():
+                                        p.unlink()
+                                except Exception:
+                                    pass
+                            st.rerun()
+
+        # ── UPLOAD ────────────────────────────────────────────────────────
+        with a_upload:
+            st.markdown("#### Upload Audio or Video")
+            st.caption("Drop in Zoom recordings, phone voice memos, or any audio/video file. Converted to WAV via ffmpeg, then transcribed.")
+
+            up = st.file_uploader(
+                "File",
+                type=["wav", "mp3", "m4a", "aac", "ogg", "flac", "mp4", "mov", "webm", "mkv"],
+                key="audio_upload",
+            )
+            up_type = st.radio("Type", ["meeting", "memo"], horizontal=True, key="up_type")
+            up_title = st.text_input("Title", key="up_title")
+            up_attendees = st.text_input("Attendees (meetings)", key="up_attendees") if up_type == "meeting" else ""
+            up_tags = st.text_input("Tags", key="up_tags", placeholder="comma,separated")
+            up_model = st.selectbox(
+                "Whisper model", WHISPER_MODELS,
+                index=2 if up_type == "meeting" else 1,
+                key="up_whisper_model",
+            )
+
+            if up and st.button("📥 Ingest & Transcribe", type="primary", key="up_go"):
+                ts = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+                prefix = "meeting" if up_type == "meeting" else "memo"
+                src = AUDIO_DIR / f"upload_src_{ts}_{up.name}"
+                src.write_bytes(up.getvalue())
+                wav_path = AUDIO_DIR / f"{prefix}_{ts}.wav"
+                with st.spinner("Converting to WAV…"):
+                    conv = convert_to_wav(src, wav_path)
+                try:
+                    src.unlink()
+                except Exception:
+                    pass
+                if conv is None:
+                    st.error("Conversion failed.")
+                else:
+                    with st.spinner(f"Transcribing ({up_model})…"):
+                        transcript = transcribe_audio(conv, model=up_model)
+                    try:
+                        info = sf.info(str(conv))
+                        dur = float(info.frames) / float(info.samplerate)
+                    except Exception:
+                        dur = 0
+                    meta = load_recording_meta(conv)
+                    meta.update({
+                        "type": up_type,
+                        "title": up_title,
+                        "attendees": up_attendees,
+                        "tags": [t.strip() for t in up_tags.split(",") if t.strip()],
+                        "duration_sec": round(dur, 1),
+                        "model": up_model,
+                        "created": datetime.datetime.now().isoformat(),
+                        "source": up.name,
+                    })
+                    save_recording_meta(conv, meta)
+                    st.session_state.rec_last = {
+                        "path": str(conv), "duration": dur,
+                        "transcript": transcript, "meta": meta,
+                    }
+                    st.success(f"Ingested `{up.name}`. Open it in the **Library** tab or run analysis below.")
+                    with st.expander("Transcript", expanded=True):
+                        st.text_area(" ", transcript, height=200,
+                                     key="up_transcript", label_visibility="collapsed")
+
+        # ── Auto-refresh while recording so the timer ticks ───────────────
+        if st.session_state.rec_handle is not None:
+            time.sleep(1)
+            st.rerun()
+
     with tab2:
         st.markdown("#### Take Screenshot")
         
@@ -1341,8 +2164,8 @@ Provide:
 6. **Risks & Mitigations**
 7. **Success Metrics**
 8. **Estimated Timeline**"""
-                        
-                        breakdown = query_ollama(prompt, model=st.session_state.selected_model)
+
+                        breakdown = ask_cloud(prompt)
                         
                         ideas = load_ideas()
                         ideas.append({
@@ -1374,8 +2197,8 @@ Use your full capabilities to:
 1. Research similar existing solutions
 2. Identify technical requirements
 3. Create a detailed project plan
-4. Suggest relevant skills and tools""")
-                        
+4. Suggest relevant skills and tools""", model=CLOUD_TASK_MODEL)
+
                         st.markdown(f'<div class="terminal-output">{result["output"]}</div>', unsafe_allow_html=True)
     
     with tab2:
@@ -1406,7 +2229,7 @@ Use your full capabilities to:
                     if st.button("🧠 Analyze", key=f"analyze_idea_{idea['id']}"):
                         with st.spinner("Analyzing..."):
                             prompt = f"Analyze this idea: {idea['title']}\n\n{idea['description']}"
-                            idea['breakdown'] = query_ollama(prompt, model=st.session_state.selected_model)
+                            idea['breakdown'] = ask_cloud(prompt, model=CLOUD_FAST_MODEL)
                             idea['status'] = 'analyzed'
                             save_ideas(ideas)
                             st.rerun()
@@ -1454,8 +2277,8 @@ Use your full capabilities to:
                             "User Journey Mapping": f"Map user journeys for: {idea['title']}\n{idea['description']}\n\nIdentify touchpoints, pain points, and opportunities.",
                             "Full Project Plan": f"Create a comprehensive project plan for: {idea['title']}\n{idea['description']}\n\nInclude phases, milestones, resources, and timeline."
                         }
-                        
-                        result = query_ollama(prompts[analysis_type], model=st.session_state.selected_model)
+
+                        result = ask_cloud(prompts[analysis_type])
                         st.markdown(f'<div class="hermes-response">{result}</div>', unsafe_allow_html=True)
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -1508,7 +2331,7 @@ Extract:
 
 Provide a detailed analysis and migration plan."""
                     
-                    result = run_hermes(prompt, skill="shopify-site-clone")
+                    result = run_hermes(prompt, skill="shopify-site-clone", model=CLOUD_TASK_MODEL)
                     st.markdown(f'<div class="terminal-output">{result["output"]}</div>', unsafe_allow_html=True)
             
             if st.button("🚀 Start Migration"):
@@ -1558,13 +2381,13 @@ Provide:
 3. Implementation steps
 4. File organization
 5. Hermes commands to build each part"""
-                    
-                    result = query_ollama(prompt, model=st.session_state.selected_model)
+
+                    result = ask_cloud(prompt)
                     st.markdown(f'<div class="hermes-response">{result}</div>', unsafe_allow_html=True)
-            
+
             if st.button("🚀 Build with Hermes"):
                 with st.spinner("Hermes is building your website..."):
-                    result = run_hermes(f"Build a {site_type} website: {project_desc}")
+                    result = run_hermes(f"Build a {site_type} website: {project_desc}", model=CLOUD_TASK_MODEL)
                     st.markdown(f'<div class="terminal-output">{result["output"]}</div>', unsafe_allow_html=True)
     
     with tab2:
@@ -1655,7 +2478,8 @@ elif page == "🤖 Agent Spawner":
 
         col_a, col_b = st.columns(2)
         with col_a:
-            dispatch_model = st.selectbox("Model", all_models, index=0, key="commandeer_model")
+            dispatch_default_idx = all_models.index(CLOUD_TASK_MODEL) if CLOUD_TASK_MODEL in all_models else 0
+            dispatch_model = st.selectbox("Model", all_models, index=dispatch_default_idx, key="commandeer_model")
         with col_b:
             dispatch_timeout = st.slider("Per-agent timeout (sec)", 60, 1800, 600, key="commandeer_timeout")
 
@@ -2034,8 +2858,9 @@ elif page == "⚙️ Settings":
             "🏠 Local Fast (gemma4:31b)": "ollama/gemma4:31b",
             "🏠 Local Power (llama3.3)": "ollama/llama3.3:latest",
             "🏠 Local Max (gpt-oss:120b)": "ollama/gpt-oss:120b",
-            "☁️ Claude Opus": "anthropic/claude-opus-4-5-20251101",
-            "☁️ Claude Sonnet": "anthropic/claude-sonnet-4",
+            "☁️ Claude Opus": "anthropic/claude-opus-4.7",
+            "☁️ Claude Sonnet": "anthropic/claude-sonnet-4.6",
+            "☁️ Claude Haiku": "anthropic/claude-haiku-4.5",
             "☁️ Gemini Pro": "google/gemini-2.5-pro"
         }
         

@@ -26,7 +26,8 @@ GITHUB_MODELS_CATALOG_URL = COPILOT_MODELS_URL
 
 # (model_id, display description shown in menus)
 OPENROUTER_MODELS: list[tuple[str, str]] = [
-    ("anthropic/claude-opus-4.6",       "recommended"),
+    ("anthropic/claude-opus-4.7",       "recommended"),
+    ("anthropic/claude-opus-4.6",       ""),
     ("anthropic/claude-sonnet-4.6",     ""),
     ("qwen/qwen3.6-plus:free", "free"),
     ("anthropic/claude-sonnet-4.5",     ""),
@@ -58,6 +59,7 @@ OPENROUTER_MODELS: list[tuple[str, str]] = [
 
 _PROVIDER_MODELS: dict[str, list[str]] = {
     "nous": [
+        "anthropic/claude-opus-4.7",
         "anthropic/claude-opus-4.6",
         "anthropic/claude-sonnet-4.6",
         "anthropic/claude-sonnet-4.5",
@@ -162,6 +164,7 @@ _PROVIDER_MODELS: dict[str, list[str]] = {
         "MiniMax-M2.7",
     ],
     "anthropic": [
+        "claude-opus-4-7",
         "claude-opus-4-6",
         "claude-sonnet-4-6",
         "claude-opus-4-5-20251101",
@@ -536,7 +539,7 @@ def model_ids() -> list[str]:
 
 
 def menu_labels() -> list[str]:
-    """Return display labels like 'anthropic/claude-opus-4.6 (recommended)'."""
+    """Return display labels like 'anthropic/claude-opus-4.7 (recommended)'."""
     labels = []
     for mid, desc in OPENROUTER_MODELS:
         labels.append(f"{mid} ({desc})" if desc else mid)
@@ -973,9 +976,9 @@ def _find_openrouter_slug(model_name: str) -> Optional[str]:
     """Find the full OpenRouter model slug for a bare or partial model name.
 
     Handles:
-    - Exact match: ``anthropic/claude-opus-4.6`` → as-is
+    - Exact match: ``anthropic/claude-opus-4.7`` → as-is
     - Bare name: ``deepseek-chat`` → ``deepseek/deepseek-chat``
-    - Bare name: ``claude-opus-4.6`` → ``anthropic/claude-opus-4.6``
+    - Bare name: ``claude-opus-4.7`` → ``anthropic/claude-opus-4.7``
     """
     name_lower = model_name.strip().lower()
     if not name_lower:

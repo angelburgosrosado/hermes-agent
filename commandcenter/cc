@@ -402,8 +402,9 @@ except:
 "
         echo ""
         echo -e "${CYAN}API Models:${NC}"
-        echo "  • anthropic/claude-opus-4-5-20251101"
-        echo "  • anthropic/claude-sonnet-4"
+        echo "  • anthropic/claude-opus-4.7"
+        echo "  • anthropic/claude-sonnet-4.6"
+        echo "  • anthropic/claude-haiku-4.5"
         echo "  • google/gemini-2.5-pro"
     elif [ "$2" = "switch" ] || [ "$2" = "set" ]; then
         NEW_MODEL="$3"

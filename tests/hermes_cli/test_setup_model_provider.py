@@ -117,7 +117,7 @@ def test_setup_keep_current_config_provider_uses_provider_specific_model_menu(
 def test_setup_same_provider_rotation_strategy_saved_for_multi_credential_pool(tmp_path, monkeypatch):
     monkeypatch.setenv("HERMES_HOME", str(tmp_path))
     _clear_provider_env(monkeypatch)
-    save_env_value("OPENROUTER_API_KEY", "or-key")
+    save_env_value("OPENROUTER_API_KEY", "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")
 
     # Pre-write config so the pool step sees provider="openrouter"
     _write_model_config("openrouter", "", "anthropic/claude-opus-4.6")
@@ -171,7 +171,7 @@ def test_setup_same_provider_rotation_strategy_saved_for_multi_credential_pool(t
 def test_setup_same_provider_fallback_can_add_another_credential(tmp_path, monkeypatch):
     monkeypatch.setenv("HERMES_HOME", str(tmp_path))
     _clear_provider_env(monkeypatch)
-    save_env_value("OPENROUTER_API_KEY", "or-key")
+    save_env_value("OPENROUTER_API_KEY", "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")
 
     # Pre-write config so the pool step sees provider="openrouter"
     _write_model_config("openrouter", "", "anthropic/claude-opus-4.6")
@@ -233,7 +233,7 @@ def test_setup_same_provider_fallback_can_add_another_credential(tmp_path, monke
 def test_setup_pool_step_shows_manual_vs_auto_detected_counts(tmp_path, monkeypatch, capsys):
     monkeypatch.setenv("HERMES_HOME", str(tmp_path))
     _clear_provider_env(monkeypatch)
-    save_env_value("OPENROUTER_API_KEY", "or-key")
+    save_env_value("OPENROUTER_API_KEY", "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")
 
     # Pre-write config so the pool step sees provider="openrouter"
     _write_model_config("openrouter", "", "anthropic/claude-opus-4.6")
@@ -411,7 +411,7 @@ def test_setup_switch_preserves_non_model_config(tmp_path, monkeypatch):
 def test_setup_summary_marks_anthropic_auth_as_vision_available(tmp_path, monkeypatch, capsys):
     monkeypatch.setenv("HERMES_HOME", str(tmp_path))
     _clear_provider_env(monkeypatch)
-    monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-ant-api03-key")
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "mock-ant-api03-key")
     monkeypatch.setattr("shutil.which", lambda _name: None)
     monkeypatch.setattr("agent.auxiliary_client.get_available_vision_backends", lambda: ["anthropic"])
 

@@ -2575,7 +2575,7 @@ def _model_flow_anthropic(config, current_model=""):
         selected = _prompt_model_selection(model_list, current_model=current_model)
     else:
         try:
-            selected = input("Model name (e.g., claude-sonnet-4-20250514): ").strip()
+            selected = input("Model name (e.g., claude-sonnet-4-6): ").strip()
         except (KeyboardInterrupt, EOFError):
             selected = None
 
@@ -4290,7 +4290,7 @@ For more help on a command:
     )
     chat_parser.add_argument(
         "-m", "--model",
-        help="Model to use (e.g., anthropic/claude-sonnet-4)"
+        help="Model to use (e.g., anthropic/claude-sonnet-4.6)"
     )
     chat_parser.add_argument(
         "-t", "--toolsets",

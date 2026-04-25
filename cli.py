@@ -111,6 +111,38 @@ def _load_prefill_messages(file_path: str) -> List[Dict[str, Any]]:
         return []
 
 
+_LOCAL_PROVIDER_IDS = {
+    "ollama", "llamacpp", "llama.cpp", "vllm", "lmstudio", "lm-studio",
+    "custom", "local",
+}
+
+
+def _looks_like_ollama_tag(model: str) -> bool:
+    """True if *model* looks like an Ollama "<name>:<tag>" slug.
+
+    Colons inside a ``vendor/model`` string are legitimate OpenRouter
+    variant suffixes (``:free``, ``:extended``, ``:fast``) and must not
+    trigger the guardrail, so we require absence of a slash.
+    """
+    if not isinstance(model, str):
+        return False
+    m = model.strip()
+    return ":" in m and "/" not in m
+
+
+def _provider_is_local(provider: str, base_url: str) -> bool:
+    """True when *provider* or *base_url* targets a local inference endpoint."""
+    if (provider or "").strip().lower() in _LOCAL_PROVIDER_IDS:
+        return True
+    url = (base_url or "").lower()
+    return (
+        "localhost" in url
+        or "127.0.0.1" in url
+        or "://0.0.0.0" in url
+        or url.startswith("http://[::1]")
+    )
+
+
 def _parse_reasoning_config(effort: str) -> dict | None:
     """Parse a reasoning effort level into an OpenRouter reasoning config dict."""
     from hermes_constants import parse_reasoning_effort
@@ -2334,9 +2366,39 @@ class HermesCLI:
         self.api_key = api_key
         self.base_url = base_url
 
+        # When resolve_runtime_provider swaps to a provider different from
+        # the one declared in config.yaml, it returns a "model" key drawn
+        # from the matching fallback_providers entry. Apply it here so
+        # provider+model stay coupled — otherwise the primary provider's
+        # model name leaks across endpoints.
+        resolved_model_hint = (runtime.get("model") or "").strip()
+        if resolved_model_hint and resolved_model_hint != self.model:
+            self.model = resolved_model_hint
+
         # Normalize model for the resolved provider (e.g. swap non-Codex
         # models when provider is openai-codex).  Fixes #651.
         model_changed = self._normalize_model_for_provider(resolved_provider)
+
+        # Guardrail: refuse to issue a request when an Ollama-style
+        # "<name>:<tag>" model is paired with a non-local provider. Without
+        # this check, a stale provider override plus a local default model
+        # (e.g. gpt-oss:120b) leaks across providers and produces a 404 from
+        # the cloud endpoint. Colons in a "vendor/model" slug are valid
+        # OpenRouter variant suffixes, so we only flag plain "name:tag".
+        if _looks_like_ollama_tag(self.model) and not _provider_is_local(
+            resolved_provider, self.base_url
+        ):
+            print(
+                f"\n❌ Refusing to call {resolved_provider} "
+                f"({self.base_url}) with Ollama-style model "
+                f"'{self.model}'.\n"
+                f"   This looks like a local tag shipped to a cloud "
+                f"provider — the call would 404.\n"
+                f"   Fix: run `hermes /model <name>` with a model the "
+                f"provider recognizes, or start a local Ollama/llama.cpp "
+                f"endpoint and set provider accordingly."
+            )
+            return False
 
         # AIAgent/OpenAI client holds auth at init time, so rebuild if key,
         # routing, or the effective model changed.

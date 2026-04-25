@@ -16,7 +16,7 @@
   <text x="92" y="172" fill="#9a968e" font-family="JetBrains Mono, monospace" font-size="13">Model, terminal, tools,</text>
   <text x="92" y="190" fill="#9a968e" font-family="JetBrains Mono, monospace" font-size="13">skills, working dir</text>
   <rect x="292" y="126" width="590" height="72" rx="10" fill="#11111a" stroke="#4b3f12"/>
-  <text x="316" y="150" fill="#e8e4dc" font-family="JetBrains Mono, monospace" font-size="14">Model: anthropic/claude-sonnet-4</text>
+  <text x="316" y="150" fill="#e8e4dc" font-family="JetBrains Mono, monospace" font-size="14">Model: anthropic/claude-sonnet-4.6</text>
   <text x="316" y="172" fill="#e8e4dc" font-family="JetBrains Mono, monospace" font-size="14">Terminal: local   Working dir: /home/user/project</text>
   <text x="316" y="194" fill="#e8e4dc" font-family="JetBrains Mono, monospace" font-size="14">Tools: 19   Skills: 12   Session: 20260315_123456_abcd1234</text>
 

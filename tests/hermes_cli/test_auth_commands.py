@@ -46,7 +46,7 @@ def test_auth_add_api_key_persists_manual_entry(tmp_path, monkeypatch):
     class _Args:
         provider = "openrouter"
         auth_type = "api-key"
-        api_key = "sk-or-manual"
+        api_key = "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"
         label = "personal"
 
     auth_add_command(_Args())
@@ -57,7 +57,7 @@ def test_auth_add_api_key_persists_manual_entry(tmp_path, monkeypatch):
     assert entry["label"] == "personal"
     assert entry["auth_type"] == "api_key"
     assert entry["source"] == "manual"
-    assert entry["access_token"] == "sk-or-manual"
+    assert entry["access_token"] == "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"
 
 
 def test_auth_add_anthropic_oauth_persists_pool_entry(tmp_path, monkeypatch):
@@ -206,7 +206,7 @@ def test_auth_remove_reindexes_priorities(tmp_path, monkeypatch):
                         "auth_type": "api_key",
                         "priority": 0,
                         "source": "manual",
-                        "access_token": "sk-ant-api-primary",
+                        "access_token": "mock-ant-api-primary",
                     },
                     {
                         "id": "cred-2",
@@ -214,7 +214,7 @@ def test_auth_remove_reindexes_priorities(tmp_path, monkeypatch):
                         "auth_type": "api_key",
                         "priority": 1,
                         "source": "manual",
-                        "access_token": "sk-ant-api-secondary",
+                        "access_token": "mock-ant-api-secondary",
                     },
                 ]
             },
@@ -343,7 +343,7 @@ def test_auth_reset_clears_provider_statuses(tmp_path, monkeypatch, capsys):
                         "auth_type": "api_key",
                         "priority": 0,
                         "source": "manual",
-                        "access_token": "sk-ant-api-primary",
+                        "access_token": "mock-ant-api-primary",
                         "last_status": "exhausted",
                         "last_status_at": 1711230000.0,
                         "last_error_code": 402,
@@ -398,7 +398,7 @@ def test_clear_provider_auth_removes_provider_pool_entries(tmp_path, monkeypatch
                         "auth_type": "api_key",
                         "priority": 0,
                         "source": "manual",
-                        "access_token": "sk-or-test",
+                        "access_token": "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",
                     }
                 ],
             },
@@ -532,8 +532,8 @@ def test_auth_remove_env_seeded_clears_env_var(tmp_path, monkeypatch):
 
     # Write a .env with an OpenRouter key
     env_path = hermes_home / ".env"
-    env_path.write_text("OPENROUTER_API_KEY=sk-or-test-key-12345\nOTHER_KEY=keep-me\n")
-    monkeypatch.setenv("OPENROUTER_API_KEY", "sk-or-test-key-12345")
+    env_path.write_text("OPENROUTER_API_KEY=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\nOTHER_KEY=keep-me\n")
+    monkeypatch.setenv("OPENROUTER_API_KEY", "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")
 
     # Seed the pool with the env entry
     _write_auth_store(
@@ -548,7 +548,7 @@ def test_auth_remove_env_seeded_clears_env_var(tmp_path, monkeypatch):
                         "auth_type": "api_key",
                         "priority": 0,
                         "source": "env:OPENROUTER_API_KEY",
-                        "access_token": "sk-or-test-key-12345",
+                        "access_token": "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",
                     }
                 ]
             },
@@ -582,8 +582,8 @@ def test_auth_remove_env_seeded_does_not_resurrect(tmp_path, monkeypatch):
 
     # Write .env with an OpenRouter key
     env_path = hermes_home / ".env"
-    env_path.write_text("OPENROUTER_API_KEY=sk-or-test-key-12345\n")
-    monkeypatch.setenv("OPENROUTER_API_KEY", "sk-or-test-key-12345")
+    env_path.write_text("OPENROUTER_API_KEY=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\n")
+    monkeypatch.setenv("OPENROUTER_API_KEY", "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")
 
     _write_auth_store(
         tmp_path,
@@ -597,7 +597,7 @@ def test_auth_remove_env_seeded_does_not_resurrect(tmp_path, monkeypatch):
                         "auth_type": "api_key",
                         "priority": 0,
                         "source": "env:OPENROUTER_API_KEY",
-                        "access_token": "sk-or-test-key-12345",
+                        "access_token": "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",
                     }
                 ]
             },
@@ -640,7 +640,7 @@ def test_auth_remove_manual_entry_does_not_touch_env(tmp_path, monkeypatch):
                         "auth_type": "api_key",
                         "priority": 0,
                         "source": "manual",
-                        "access_token": "sk-or-manual-key",
+                        "access_token": "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",
                     }
                 ]
             },

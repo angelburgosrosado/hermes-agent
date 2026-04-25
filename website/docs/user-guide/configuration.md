@@ -46,7 +46,7 @@ The `hermes config set` command automatically routes values to the right file �
 
 Settings are resolved in this order (highest priority first):
 
-1. **CLI arguments** — e.g., `hermes chat --model anthropic/claude-sonnet-4` (per-invocation override)
+1. **CLI arguments** — e.g., `hermes chat --model anthropic/claude-sonnet-4.6` (per-invocation override)
 2. **`~/.hermes/config.yaml`** — the primary config file for all non-secret settings
 3. **`~/.hermes/.env`** — fallback for env vars; **required** for secrets (API keys, tokens, passwords)
 4. **Built-in defaults** — hardcoded safe defaults when nothing else is set

@@ -12,4 +12,5 @@ else
     source "$CC_DIR/venv/bin/activate"
 fi
 
-streamlit run app.py --server.port 8080 --server.headless true --browser.gatherUsageStats false
+PORT=${CC_PORT:-8080}
+streamlit run app.py --server.port $PORT --server.headless true --browser.gatherUsageStats false

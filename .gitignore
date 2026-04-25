@@ -93,3 +93,10 @@ commandcenter/projects/
 /claudeclaw_capabilities.html
 /claudeclaw_capabilities.mp4
 /claudeclaw_summary.mp4
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/

@@ -1489,7 +1489,7 @@ def validate_config_structure(config: Optional[Dict[str, Any]] = None) -> List["
                 "Change to:\n"
                 "  fallback_model:\n"
                 "    provider: openrouter\n"
-                "    model: anthropic/claude-sonnet-4",
+                "    model: anthropic/claude-sonnet-4.6",
             ))
         elif fb:
             if not fb.get("provider"):
@@ -1502,7 +1502,7 @@ def validate_config_structure(config: Optional[Dict[str, Any]] = None) -> List["
                 issues.append(ConfigIssue(
                     "warning",
                     "fallback_model is missing 'model' field — fallback will be disabled",
-                    "Add: model: anthropic/claude-sonnet-4 (or another model)",
+                    "Add: model: anthropic/claude-sonnet-4.6 (or another model)",
                 ))
 
     # ── Check for fallback_model accidentally nested inside custom_providers ──
@@ -2697,7 +2697,7 @@ def config_command(args):
             print("Usage: hermes config set <key> <value>")
             print()
             print("Examples:")
-            print("  hermes config set model anthropic/claude-sonnet-4")
+            print("  hermes config set model anthropic/claude-sonnet-4.6")
             print("  hermes config set terminal.backend docker")
             print("  hermes config set OPENROUTER_API_KEY sk-or-...")
             sys.exit(1)

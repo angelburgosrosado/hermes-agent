@@ -208,19 +208,25 @@ def _resolve_runtime_from_pool_entry(
 def resolve_requested_provider(requested: Optional[str] = None) -> str:
     """Resolve provider request from explicit arg, config, then env."""
     if requested and requested.strip():
-        return requested.strip().lower()
+        result = requested.strip().lower()
+        logger.debug("resolve_requested_provider: %r via explicit arg", result)
+        return result
 
     model_cfg = _get_model_config()
     cfg_provider = model_cfg.get("provider")
     if isinstance(cfg_provider, str) and cfg_provider.strip():
-        return cfg_provider.strip().lower()
+        result = cfg_provider.strip().lower()
+        logger.debug("resolve_requested_provider: %r via config.yaml model.provider", result)
+        return result
 
     # Prefer the persisted config selection over any stale shell/.env
     # provider override so chat uses the endpoint the user last saved.
     env_provider = os.getenv("HERMES_INFERENCE_PROVIDER", "").strip().lower()
     if env_provider:
+        logger.debug("resolve_requested_provider: %r via HERMES_INFERENCE_PROVIDER env", env_provider)
         return env_provider
 
+    logger.debug("resolve_requested_provider: 'auto' (no config or env)")
     return "auto"
 
 
@@ -578,13 +584,157 @@ def _resolve_explicit_runtime(
     return None
 
 
+def _find_fallback_model_for_provider(provider: str) -> Optional[str]:
+    """Return the user's declared model for *provider* from config.yaml.
+
+    Reads ``fallback_providers`` (new list form) and ``fallback_model``
+    (legacy single-dict form). The user's fallback chain is a declaration
+    of "when routing to provider X, use model Y" — honoring it here keeps
+    model and provider coupled when the resolver swaps to a non-default
+    provider. Canonicalizes aliases (google↔gemini, claude↔anthropic,
+    etc.) so a config entry for ``google`` matches a resolved ``gemini``.
+    """
+    try:
+        config = load_config()
+    except Exception:
+        return None
+
+    def _canonical(p: str) -> str:
+        try:
+            from hermes_cli.auth import resolve_provider as _rp
+            return _rp(p)
+        except Exception:
+            return (p or "").strip().lower()
+
+    target = _canonical(provider)
+    if not target:
+        return None
+
+    def _pick(entry) -> Optional[str]:
+        if not isinstance(entry, dict):
+            return None
+        if _canonical(entry.get("provider", "")) != target:
+            return None
+        m = (entry.get("model") or "").strip()
+        return m or None
+
+    for entry in config.get("fallback_providers") or []:
+        picked = _pick(entry)
+        if picked:
+            return picked
+
+    legacy = config.get("fallback_model")
+    if isinstance(legacy, dict):
+        picked = _pick(legacy)
+        if picked:
+            return picked
+
+    return None
+
+
+def _attach_fallback_model(runtime: Dict[str, Any]) -> Dict[str, Any]:
+    """Attach a ``model`` hint to *runtime* when the resolver swapped
+    providers away from the one declared in config and the user has a
+    matching ``fallback_providers`` entry. Mutates and returns *runtime*.
+    """
+    resolved = (runtime.get("provider") or "").strip().lower()
+    if not resolved:
+        return runtime
+
+    try:
+        cfg = _get_model_config()
+        cfg_provider = (cfg.get("provider") or "").strip().lower()
+        from hermes_cli.auth import resolve_provider as _rp
+        try:
+            if cfg_provider and _rp(cfg_provider) == _rp(resolved):
+                return runtime  # same provider, caller's model is fine
+        except Exception:
+            if cfg_provider == resolved:
+                return runtime
+    except Exception:
+        pass
+
+    hint = _find_fallback_model_for_provider(resolved)
+    if hint:
+        runtime["model"] = hint
+        logger.info(
+            "runtime_provider: resolved=%s differs from config provider=%s; "
+            "attaching model=%s from fallback_providers",
+            resolved, cfg_provider or "<unset>", hint,
+        )
+    return runtime
+
+
 def resolve_runtime_provider(
     *,
     requested: Optional[str] = None,
     explicit_api_key: Optional[str] = None,
     explicit_base_url: Optional[str] = None,
 ) -> Dict[str, Any]:
-    """Resolve runtime provider credentials for agent execution."""
+    """Resolve runtime provider credentials for agent execution.
+
+    When the resolved provider differs from the one declared in
+    ``config.yaml``'s ``model.provider``, attaches a ``model`` key taken
+    from the matching ``fallback_providers`` entry, so callers can update
+    ``self.model`` atomically with ``self.provider`` instead of shipping
+    the primary provider's model name to a different endpoint.
+    """
+    runtime = _resolve_runtime_provider_core(
+        requested=requested,
+        explicit_api_key=explicit_api_key,
+        explicit_base_url=explicit_base_url,
+    )
+
+    # Trace: when the resolved provider diverges from config.yaml's
+    # declared model.provider, record enough context to diagnose which
+    # layer drove the switch (credential pool, auth.json active_provider,
+    # env override, explicit arg, etc.).
+    try:
+        resolved = (runtime.get("provider") or "").strip().lower()
+        cfg_provider = ""
+        try:
+            cfg_provider = (_get_model_config().get("provider") or "").strip().lower()
+        except Exception:
+            pass
+        if cfg_provider and resolved and cfg_provider != resolved:
+            try:
+                from hermes_cli.auth import resolve_provider as _rp
+                same = _rp(cfg_provider) == _rp(resolved)
+            except Exception:
+                same = False
+            if not same:
+                active = ""
+                try:
+                    auth_path = os.path.expanduser("~/.hermes/auth.json")
+                    if os.path.exists(auth_path):
+                        import json as _json
+                        with open(auth_path) as _f:
+                            active = (_json.load(_f).get("active_provider") or "")
+                except Exception:
+                    pass
+                logger.warning(
+                    "runtime_provider: resolved=%s diverges from config=%s "
+                    "(requested_arg=%r, HERMES_INFERENCE_PROVIDER=%r, "
+                    "auth.active_provider=%r, source=%r)",
+                    resolved, cfg_provider,
+                    requested or "",
+                    os.getenv("HERMES_INFERENCE_PROVIDER", ""),
+                    active,
+                    runtime.get("source", ""),
+                )
+    except Exception:
+        pass  # tracing must never break resolution
+
+    return _attach_fallback_model(runtime)
+
+
+def _resolve_runtime_provider_core(
+    *,
+    requested: Optional[str] = None,
+    explicit_api_key: Optional[str] = None,
+    explicit_base_url: Optional[str] = None,
+) -> Dict[str, Any]:
+    """Resolve runtime provider credentials (raw, without model coupling)."""
     requested_provider = resolve_requested_provider(requested)
 
     custom_runtime = _resolve_named_custom_runtime(

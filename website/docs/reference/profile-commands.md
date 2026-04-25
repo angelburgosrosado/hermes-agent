@@ -138,7 +138,7 @@ Displays details about a profile including its home directory, configured model,
 $ hermes profile show work
 Profile: work
 Path:    ~/.hermes/profiles/work
-Model:   anthropic/claude-sonnet-4 (anthropic)
+Model:   anthropic/claude-sonnet-4.6 (anthropic)
 Gateway: stopped
 Skills:  12
 .env:    exists
