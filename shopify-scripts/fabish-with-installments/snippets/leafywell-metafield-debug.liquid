@@ -1,0 +1,186 @@
+{% comment %}
+================================================================================
+  Leafywell Metafield Debug Tool
+  File: snippets/leafywell-metafield-debug.liquid
+  
+  HOW TO USE:
+  1. Add this snippet to any product page template:
+     {% render 'leafywell-metafield-debug', product: product %}
+  2. View the product page — you'll see a collapsible panel showing all values
+  3. REMOVE this snippet before going live to customers
+================================================================================
+{% endcomment %}
+
+{% assign lw_qa_context  = product.metafields.leafywell.qa_context.value %}
+{% assign lw_benefits    = product.metafields.leafywell.key_benefits.value %}
+{% assign lw_certs       = product.metafields.leafywell.certifications.value %}
+{% assign lw_usage       = product.metafields.leafywell.suggested_use.value %}
+{% assign lw_warnings    = product.metafields.leafywell.warnings.value %}
+{% assign lw_supfacts    = product.metafields.leafywell.supplement_facts.value %}
+
+<div id="lw-debug-panel" style="margin:32px 0;font-family:monospace;font-size:12px;">
+  <details open>
+    <summary style="cursor:pointer;padding:10px 14px;background:#0f172a;color:#94a3b8;border-radius:8px;list-style:none;display:flex;align-items:center;gap:8px;">
+      <span style="color:#2d6a4f;font-weight:700;">🔍 Leafywell Metafield Debug</span>
+      <span style="margin-left:auto;font-size:10px;opacity:0.6;">— REMOVE BEFORE LAUNCH</span>
+    </summary>
+
+    <div style="border:1px solid #1e293b;border-top:none;border-radius:0 0 8px 8px;padding:16px;background:#0f172a;">
+
+      {{- '<!-- PRODUCT INFO -->' }}
+      <div style="margin-bottom:12px;padding:10px;background:#1e293b;border-radius:6px;">
+        <div style="color:#64748b;font-size:10px;text-transform:uppercase;margin-bottom:6px;">Product</div>
+        <div style="color:#f1f5f9;">{{ product.title }}</div>
+        <div style="color:#94a3b8;">Handle: <span style="color:#7dd3fc;">{{ product.handle }}</span></div>
+        <div style="color:#94a3b8;">SKU: <span style="color:#7dd3fc;">{{ product.selected_or_first_available_variant.sku | default: '(none)' }}</span></div>
+        <div style="color:#94a3b8;">ID: <span style="color:#7dd3fc;">{{ product.id }}</span></div>
+      </div>
+
+      {{- '<!-- QA CONTEXT -->' }}
+      <div style="margin-bottom:12px;padding:10px;background:#1e293b;border-radius:6px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+          <div style="color:#64748b;font-size:10px;text-transform:uppercase;">leafywell.qa_context</div>
+          {% if lw_qa_context != blank %}
+            <span style="padding:2px 8px;border-radius:10px;background:#14532d;color:#86efac;font-size:10px;">✓ POPULATED</span>
+            <span style="color:#94a3b8;font-size:10px;">{{ lw_qa_context | size }} chars</span>
+          {% else %}
+            <span style="padding:2px 8px;border-radius:10px;background:#450a0a;color:#fca5a5;font-size:10px;">✗ EMPTY</span>
+          {% endif %}
+        </div>
+        {% if lw_qa_context != blank %}
+          <div style="color:#a3e635;background:#0a0a0a;padding:8px;border-radius:4px;white-space:pre-wrap;overflow:auto;max-height:200px;line-height:1.6;">{{ lw_qa_context | escape }}</div>
+        {% else %}
+          <div style="color:#dc2626;font-style:italic;">⚠ No qa_context set — AI will use generic fallback responses</div>
+        {% endif %}
+      </div>
+
+      {{- '<!-- KEY BENEFITS -->' }}
+      <div style="margin-bottom:12px;padding:10px;background:#1e293b;border-radius:6px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+          <div style="color:#64748b;font-size:10px;text-transform:uppercase;">leafywell.key_benefits</div>
+          {% if lw_benefits != blank %}
+            <span style="padding:2px 8px;border-radius:10px;background:#14532d;color:#86efac;font-size:10px;">✓ {{ lw_benefits | size }} items</span>
+          {% else %}
+            <span style="padding:2px 8px;border-radius:10px;background:#450a0a;color:#fca5a5;font-size:10px;">✗ EMPTY</span>
+          {% endif %}
+        </div>
+        {% if lw_benefits != blank %}
+          <div style="display:flex;flex-wrap:wrap;gap:4px;">
+            {% for b in lw_benefits %}
+              <span style="padding:3px 8px;background:#1e3a5f;color:#93c5fd;border-radius:4px;">{{ b }}</span>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div style="color:#94a3b8;font-style:italic;">No quick-question chips will appear in the widget</div>
+        {% endif %}
+      </div>
+
+      {{- '<!-- CERTIFICATIONS -->' }}
+      <div style="margin-bottom:12px;padding:10px;background:#1e293b;border-radius:6px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+          <div style="color:#64748b;font-size:10px;text-transform:uppercase;">leafywell.certifications</div>
+          {% if lw_certs != blank %}
+            <span style="padding:2px 8px;border-radius:10px;background:#14532d;color:#86efac;font-size:10px;">✓ {{ lw_certs | size }} items</span>
+          {% else %}
+            <span style="padding:2px 8px;border-radius:10px;background:#78350f;color:#fcd34d;font-size:10px;">○ OPTIONAL / EMPTY</span>
+          {% endif %}
+        </div>
+        {% if lw_certs != blank %}
+          <div style="display:flex;flex-wrap:wrap;gap:4px;">
+            {% for c in lw_certs %}
+              <span style="padding:3px 8px;background:#14532d;color:#86efac;border-radius:4px;">{{ c }}</span>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+
+      {{- '<!-- SUGGESTED USE -->' }}
+      <div style="margin-bottom:12px;padding:10px;background:#1e293b;border-radius:6px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+          <div style="color:#64748b;font-size:10px;text-transform:uppercase;">leafywell.suggested_use</div>
+          {% if lw_usage != blank %}
+            <span style="padding:2px 8px;border-radius:10px;background:#14532d;color:#86efac;font-size:10px;">✓ POPULATED</span>
+          {% else %}
+            <span style="padding:2px 8px;border-radius:10px;background:#78350f;color:#fcd34d;font-size:10px;">○ OPTIONAL / EMPTY</span>
+          {% endif %}
+        </div>
+        {% if lw_usage != blank %}
+          <div style="color:#a3e635;">{{ lw_usage }}</div>
+        {% endif %}
+      </div>
+
+      {{- '<!-- WARNINGS -->' }}
+      <div style="margin-bottom:12px;padding:10px;background:#1e293b;border-radius:6px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+          <div style="color:#64748b;font-size:10px;text-transform:uppercase;">leafywell.warnings</div>
+          {% if lw_warnings != blank %}
+            <span style="padding:2px 8px;border-radius:10px;background:#14532d;color:#86efac;font-size:10px;">✓ POPULATED</span>
+          {% else %}
+            <span style="padding:2px 8px;border-radius:10px;background:#78350f;color:#fcd34d;font-size:10px;">○ OPTIONAL / EMPTY</span>
+          {% endif %}
+        </div>
+        {% if lw_warnings != blank %}
+          <div style="color:#fbbf24;white-space:pre-wrap;">{{ lw_warnings | escape }}</div>
+        {% endif %}
+      </div>
+
+      {{- '<!-- SUPPLEMENT FACTS -->' }}
+      <div style="margin-bottom:12px;padding:10px;background:#1e293b;border-radius:6px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+          <div style="color:#64748b;font-size:10px;text-transform:uppercase;">leafywell.supplement_facts (JSON)</div>
+          {% if lw_supfacts != blank %}
+            <span style="padding:2px 8px;border-radius:10px;background:#14532d;color:#86efac;font-size:10px;">✓ POPULATED</span>
+          {% else %}
+            <span style="padding:2px 8px;border-radius:10px;background:#78350f;color:#fcd34d;font-size:10px;">○ OPTIONAL / EMPTY</span>
+          {% endif %}
+        </div>
+        {% if lw_supfacts != blank %}
+          <div style="color:#a3e635;background:#0a0a0a;padding:8px;border-radius:4px;overflow:auto;max-height:120px;">{{ lw_supfacts }}</div>
+        {% endif %}
+      </div>
+
+      {{- '<!-- PROXY TEST -->' }}
+      <div style="padding:10px;background:#1e293b;border-radius:6px;">
+        <div style="color:#64748b;font-size:10px;text-transform:uppercase;margin-bottom:8px;">Proxy + AI Test</div>
+        <div style="color:#94a3b8;margin-bottom:8px;font-size:11px;">Send a test question to the live proxy with this product's context:</div>
+        <div style="display:flex;gap:8px;margin-bottom:8px;">
+          <input type="text" id="lw-debug-q" value="What are the main ingredients?" style="flex:1;padding:6px 10px;background:#0f172a;border:1px solid #334155;color:#f1f5f9;border-radius:4px;font-size:12px;font-family:monospace;">
+          <button onclick="lwDebugTest()" style="padding:6px 12px;background:#2d6a4f;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:12px;">Test →</button>
+        </div>
+        <div id="lw-debug-result" style="min-height:40px;padding:8px;background:#0a0a0a;border-radius:4px;color:#a3e635;font-size:11px;line-height:1.6;white-space:pre-wrap;">Click Test to fire a live request to the proxy...</div>
+      </div>
+
+    </div>
+  </details>
+</div>
+
+<script>
+async function lwDebugTest() {
+  var q   = document.getElementById('lw-debug-q').value;
+  var out = document.getElementById('lw-debug-result');
+  out.style.color = '#94a3b8';
+  out.textContent = 'Sending to proxy...';
+  try {
+    var res = await fetch('https://myiad-rag-app.vercel.app/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        question: q,
+        productHandle: {{ product.handle | json }},
+        staticContext: {{ product.metafields.leafywell.qa_context.value | default: '' | json }}
+      })
+    });
+    var data = await res.json();
+    if (data.answer) {
+      out.style.color = '#a3e635';
+      out.textContent = '✓ RESPONSE:\n\n' + data.answer;
+    } else {
+      out.style.color = '#fbbf24';
+      out.textContent = '⚠ Unexpected response:\n' + JSON.stringify(data, null, 2);
+    }
+  } catch(e) {
+    out.style.color = '#f87171';
+    out.textContent = '✗ ERROR: ' + e.message;
+  }
+}
+</script>

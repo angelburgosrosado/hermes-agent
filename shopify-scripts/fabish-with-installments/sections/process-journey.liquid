@@ -1,0 +1,281 @@
+{{ 'section-process-journey.css' | asset_url | stylesheet_tag }}
+
+{%- style -%}
+  .section-{{ section.id }}-padding {
+    padding-top: {{ section.settings.padding_top | times: 0.75 | round: 0 }}px;
+    padding-bottom: {{ section.settings.padding_bottom | times: 0.75 | round: 0 }}px;
+  }
+  @media screen and (min-width: 750px) {
+    .section-{{ section.id }}-padding {
+      padding-top: {{ section.settings.padding_top }}px;
+      padding-bottom: {{ section.settings.padding_bottom }}px;
+    }
+  }
+
+  .process-journey {
+    display: flex;
+    flex-direction: column;
+    gap: 3rem;
+  }
+
+  .process-journey__step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 1.5rem;
+  }
+
+  @media screen and (min-width: 750px) {
+    .process-journey {
+      flex-direction: row;
+      justify-content: space-between;
+      gap: 2rem;
+    }
+    .process-journey__step {
+      flex: 1;
+      position: relative;
+    }
+    
+    /* Optional connector line between steps */
+    .process-journey__step:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      top: 25%;
+      right: -1rem;
+      width: 2rem;
+      height: 2px;
+      background-color: rgba(var(--color-foreground), 0.1);
+      z-index: -1;
+    }
+  }
+
+  .process-journey__image-wrapper {
+    width: {{ section.settings.image_width }}px;
+    height: {{ section.settings.image_width }}px;
+    border-radius: 50%;
+    overflow: hidden;
+    background-color: rgba(var(--color-foreground), 0.05);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .process-journey__image-wrapper img, .process-journey__image-wrapper svg {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .process-journey__step-number {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1rem;
+    color: rgba(var(--color-foreground), 0.7);
+    margin-bottom: 0.5rem;
+  }
+{%- endstyle -%}
+
+<div class="color-{{ section.settings.color_scheme }} gradient">
+  <div class="page-width section-{{ section.id }}-padding">
+    {%- unless section.settings.title == blank -%}
+      <div class="title-wrapper-with-link title-wrapper--no-top-margin center">
+        <h2 class="title {{ section.settings.heading_size }}">{{ section.settings.title | escape }}</h2>
+        {%- if section.settings.description != blank -%}
+          <p class="description">{{ section.settings.description }}</p>
+        {%- endif -%}
+      </div>
+    {%- endunless -%}
+
+    <div class="process-journey">
+      {%- for block in section.blocks -%}
+        <div class="process-journey__step" {{ block.shopify_attributes }}>
+          <div class="process-journey__image-wrapper">
+            {%- if block.settings.image != blank -%}
+              {{ block.settings.image | image_url: width: section.settings.image_width | image_tag: loading: 'lazy' }}
+            {%- else -%}
+              {{ 'image' | placeholder_svg_tag: 'placeholder-svg' }}
+            {%- endif -%}
+          </div>
+          <div class="process-journey__content">
+            <div class="process-journey__step-number">Step {{ forloop.index }}</div>
+            {%- if block.settings.title != blank -%}
+              <h3>{{ block.settings.title | escape }}</h3>
+            {%- endif -%}
+            {%- if block.settings.text != blank -%}
+              <div class="rte">{{ block.settings.text }}</div>
+            {%- endif -%}
+          </div>
+        </div>
+      {%- endfor -%}
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Process Journey",
+  "tag": "section",
+  "class": "section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "title",
+      "default": "Our Process",
+      "label": "Heading"
+    },
+    {
+      "type": "select",
+      "id": "heading_size",
+      "options": [
+        {
+          "value": "h2",
+          "label": "Small"
+        },
+        {
+          "value": "h1",
+          "label": "Medium"
+        },
+        {
+          "value": "h0",
+          "label": "Large"
+        }
+      ],
+      "default": "h1",
+      "label": "Heading size"
+    },
+    {
+      "type": "textarea",
+      "id": "description",
+      "label": "Description"
+    },
+    {
+      "type": "range",
+      "id": "image_width",
+      "min": 50,
+      "max": 250,
+      "step": 10,
+      "default": 150,
+      "unit": "px",
+      "label": "Image/Icon width"
+    },
+    {
+      "type": "select",
+      "id": "color_scheme",
+      "options": [
+        {
+          "value": "accent-1",
+          "label": "Accent 1"
+        },
+        {
+          "value": "accent-2",
+          "label": "Accent 2"
+        },
+        {
+          "value": "background-1",
+          "label": "Background 1"
+        },
+        {
+          "value": "background-2",
+          "label": "Background 2"
+        },
+        {
+          "value": "inverse",
+          "label": "Inverse"
+        }
+      ],
+      "default": "background-1",
+      "label": "Color scheme"
+    },
+    {
+      "type": "header",
+      "content": "Section padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Padding top",
+      "default": 36
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Padding bottom",
+      "default": 36
+    }
+  ],
+  "blocks": [
+    {
+      "type": "step",
+      "name": "Step",
+      "limit": 6,
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Image"
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "default": "Step Title",
+          "label": "Title"
+        },
+        {
+          "type": "richtext",
+          "id": "text",
+          "default": "<p>Explain what happens during this step of the process.</p>",
+          "label": "Description"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "From Soil to Supplement",
+      "blocks": [
+        { 
+          "type": "step",
+          "settings": {
+            "title": "Sustainable Farming",
+            "text": "<p>We nurture the soil and grow our herbs organically.</p>"
+          }
+        },
+        { 
+          "type": "step",
+          "settings": {
+            "title": "Careful Harvesting",
+            "text": "<p>Herbs are picked at their peak potency.</p>"
+          }
+        },
+        { 
+          "type": "step",
+          "settings": {
+            "title": "Rigorous Testing",
+            "text": "<p>Purity and potency are tested at every stage.</p>"
+          }
+        },
+        { 
+          "type": "step",
+          "settings": {
+            "title": "Premium Supplements",
+            "text": "<p>Delivered to you with transparency and care.</p>"
+          }
+        }
+      ],
+      "settings": {
+        "title": "From Soil to Supplement",
+        "description": "Discover our commitment to purity, potency, and transparency."
+      }
+    }
+  ]
+}
+{% endschema %}

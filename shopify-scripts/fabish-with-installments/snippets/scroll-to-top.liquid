@@ -1,0 +1,123 @@
+{% if settings.enable_scroll_to_top %}
+<a id="to-top" href="#{{ page_title | handle }}" class="dt-sc-to-top">
+  <div class="arrow">
+  {% render 'icon-right-arrow' %}
+    </div>
+  <div class="text">
+		Back to top
+	</div>     
+</a>
+{% endif %} 
+
+
+{% style %} 
+   .dt-sc-to-top.show {
+  bottom: 15px;
+  opacity: 1;
+}
+.dt-sc-to-top > div {
+  -webkit-transition: all 0.3s ease-in-out;
+  -moz-transition: all 0.3s ease-in-out;
+  -ms-transition: all 0.3s ease-in-out;
+  -o-transition: all 0.3s ease-in-out;
+  transition: all 0.3s ease-in-out;
+}  
+.dt-sc-to-top > div.arrow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translateY(-50%) translateX(-50%);
+  opacity: 1;
+}
+.dt-sc-to-top > div.text {
+  font-size: 0.8rem;
+  line-height: 10px;
+  text-transform: uppercase;
+  font-weight: 600;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translateY(50%) translateX(-50%);
+  opacity: 0;
+  margin-top: 1px;
+}
+.dt-sc-to-top:hover {
+  transform: scale(1.1);
+  bottom: 20px;
+  cursor: pointer;
+  background: black;
+  box-shadow: 0 10px 5px rgba(0, 0, 0, 0.1);
+}
+.dt-sc-to-top:hover > div.arrow {
+  transform: translateY(-150%) translateX(-50%);
+  opacity: 0;
+}
+.dt-sc-to-top:hover > div.text {
+  transform: translateY(-50%) translateX(-50%);
+  opacity: 1;
+}
+@-webkit-keyframes AnimationName {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+@-moz-keyframes AnimationName {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+@keyframes AnimationName {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+  
+ {% endstyle %} 
+<script type="text/javascript">
+  
+ $(document).ready(function () {                                                            
+  $('#to-top').on('click', function (e) {
+    e.preventDefault();
+    
+    var target = this.hash;
+    var $target = $(target);
+    $('html, body').stop().animate({
+      'scrollTop': $target.offset().top
+    }, 900, 'swing');
+    
+    
+  });                    
+
+});
+
+$(window).scroll(function(event){
+  	var scroll = $(window).scrollTop();
+    if (scroll >= 800) {
+        $(".dt-sc-to-top").addClass("show");
+    } else {
+        $(".dt-sc-to-top").removeClass("show");
+    }
+});
+
+
+
+
+</script>

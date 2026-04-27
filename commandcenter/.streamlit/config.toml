@@ -1,6 +1,10 @@
 [theme]
+# Default to dark; users can flip to light via Streamlit's
+# Settings → Theme menu. The CSS in app.py adapts to whichever
+# is active by reading Streamlit's own theme tokens / matching
+# prefers-color-scheme.
 base = "dark"
-primaryColor = "#ffd700"
+primaryColor = "#d4a017"
 backgroundColor = "#0f0f1a"
 secondaryBackgroundColor = "#1a1a2e"
 textColor = "#f3f4f6"
@@ -9,6 +13,7 @@ font = "sans serif"
 [server]
 headless = true
 port = 8080
+runOnSave = true
 
 [browser]
 gatherUsageStats = false

@@ -1,0 +1,162 @@
+{% if section.blocks.size > 0 %}
+{% unless section.settings.disable_announcement_bar %}
+<div class="announcement-bar-wrapper color-{{ section.settings.color_scheme }} gradient {% if section.settings.disable_announcement_bar_mobile %} hide-mobile {% endif %}">
+  <div class="swiper announcement-swiper">
+    <div class="swiper-wrapper">
+    {%- for block in section.blocks -%}
+      {%- case block.type -%}
+        {%- when 'announcement' -%}
+          <div class="swiper-slide announcement-bar section-{{ section.id }}-block-{{ block.id }}" role="region" aria-label="{{ 'sections.header.announcement' | t }}" {{ block.shopify_attributes }}>
+            {%- if block.settings.text != blank -%}
+              {%- if block.settings.link != blank -%}
+                <a href="{{ block.settings.link }}" class="announcement-bar__link link link--text focus-inset animate-arrow">
+              {%- endif -%}
+                  <p class="announcement-bar__message h5">
+                    {%- if block.settings.icon_image != blank -%}
+                      <span class="icon-image" style="background-image: url({{ block.settings.icon_image | image_url: width: 50 }});"></span>
+                    {%- endif -%}
+                    <span>{{ block.settings.text | escape }}</span>
+                  </p>
+              {%- if block.settings.link != blank -%}
+                </a>
+              {%- endif -%}
+            {%- endif -%}
+          </div>
+      {%- endcase -%}
+    {%- endfor -%}
+    </div>
+  </div>
+</div>
+{% endunless %}
+{% endif %}
+
+{%- style -%}
+  @media screen and (max-width: 990px) {
+    {% if section.settings.disable_announcement_bar_mobile %}
+      .announcement-bar-wrapper.hide-mobile { display:none; }
+    {% endif %} 
+  }
+
+  .announcement-bar-wrapper {
+    display: flex;
+    justify-content: center;
+    padding: 8px 0;
+    border-bottom: 0.1rem solid rgba(var(--color-foreground), 0.08);
+  }
+  
+  .announcement-swiper {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  .announcement-bar .announcement-bar__message { transition:all 0.3s linear; margin:0; padding:0; display:inline-flex; align-items: center; justify-content: center; gap: 8px; }
+  .announcement-bar .icon-image { width: 20px; height: 20px; background-size: contain; background-repeat: no-repeat; background-position: center; display: inline-block; }
+  .announcement-bar .announcement-bar__message:hover { color: var(--gradient-base-accent-2); }
+  
+  body.overflow-hidden #shopify-section-announcement-bar, body.overflow-hidden-mobile #shopify-section-announcement-bar { z-index: 0; }
+  body.overflow-hidden-tablet #shopify-section-announcement-bar { z-index: 0; display: none; }  
+{%- endstyle -%}
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    if (typeof Swiper !== 'undefined') {
+      new Swiper('.announcement-swiper', {
+        loop: true,
+        autoplay: { delay: 4000, disableOnInteraction: false },
+        slidesPerView: 1,
+        effect: 'fade',
+        fadeEffect: { crossFade: true }
+      });
+    }
+  });
+</script>
+
+
+
+{% schema %}
+{
+  "name": "t:sections.announcement-bar.name",
+  "max_blocks": 12,
+  "settings":[
+      {
+          "type": "select",
+          "id": "color_scheme",
+          "options": [
+            {
+              "value": "accent-1",
+              "label": "t:sections.all.colors.accent_1.label"
+            },
+            {
+              "value": "accent-2",
+              "label": "t:sections.all.colors.accent_2.label"
+            },
+            {
+              "value": "background-1",
+              "label": "t:sections.all.colors.background_1.label"
+            },
+            {
+              "value": "background-2",
+              "label": "t:sections.all.colors.background_2.label"
+            },
+             {
+              "value": "background-4",
+              "label": "t:sections.all.colors.background_4.label"
+            },
+            {
+              "value": "inverse",
+              "label": "t:sections.all.colors.inverse.label"
+            }
+          ],
+          "default": "accent-1",
+          "label": "t:sections.all.colors.label"
+        },
+      {
+  "type": "checkbox",
+  "id": "disable_announcement_bar",
+  "label": "t:sections.announcement-bar.settings.disable_announcement_bar.label",
+  "default": false
+  },
+      {
+  "type": "checkbox",
+  "id": "disable_announcement_bar_mobile",
+  "label": "t:sections.announcement-bar.settings.disable_announcement_bar_mobile.label",
+  "default": false
+  }
+  ],
+   "blocks": [
+    {
+      "type": "announcement",
+      "name": "t:sections.announcement-bar.blocks.announcement.name",
+      "settings": [
+        {
+          "type": "text",
+          "id": "text",
+          "default": "Welcome to our store",
+          "label": "t:sections.announcement-bar.blocks.announcement.settings.text.label"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "t:sections.announcement-bar.blocks.announcement.settings.link.label"
+        },
+            {
+  "type": "image_picker",
+  "id": "icon_image",
+  "label": "t:sections.announcement-bar.blocks.announcement.settings.icon_image.label"
+  }
+        
+      ]
+    }
+    
+  ],
+  "default": {
+    "blocks": [
+      {
+        "type": "announcement"
+      }
+    ]
+  }
+}
+{% endschema %}

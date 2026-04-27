@@ -1,0 +1,36 @@
+ {% if settings.display_item_size %}
+          {% for option in product.options %}
+          {% assign downcased_option = option | downcase %}    
+          {% if downcased_option contains 'size'  %}
+          {%- assign option_index = forloop.index0 -%}
+          {%- assign values = '' -%}
+          <ul class="variant-option-size">
+            {% for variant in product.variants %}
+            {%- assign value = variant.options[option_index] -%}
+            {% unless values contains value %}
+            {%- assign values = values | join: ',' -%}
+            {%- assign values = values | append: ',' | append: value -%}
+            {%- assign values = values | split: ',' -%}
+            <li class="size-values">   
+              <input 
+                     type="radio" 
+                     name="id" 
+                     class="variant-option hide"
+                     value="{{ variant.id }}" 
+                     id="variant-option-{{ variant.id }}" 
+                     {% unless variant.available %} disabled{% endunless %}
+                     {% if current_variant.id == variant.id %} checked{% endif %}
+                     >    
+              <a data-url="{{ variant.url | within: collection }}" class="swatch size" data-swatch-meta="name-{{ downcased_option }}_{{ value | replace: ' ', '_' | downcase }}">
+                <span {%- if variant.image %} data-image="{{ variant.image | image_url: width: 460 }}"
+                      {% else %}
+                      data-image="{{ product.featured_media | image_url: width: 360 }}"{% endif %} 
+                      data-id="{{variant.id}}" data-variant-title-id="size" data-variant-item="{{ value | replace: ' ', '-' | downcase }}" data-variant-title="{{ variant.title }}">{{ value | escape }}</span>
+              </a>          
+            </li>
+            {% endunless %}
+            {% endfor %}
+          </ul>
+          {% endif %}
+          {% endfor %}
+          {% endif %}

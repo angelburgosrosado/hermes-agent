@@ -1,0 +1,131 @@
+.section.form-image .contact img {
+  max-width: 100%;
+}
+
+.section.form-image .contact .form__message {
+  align-items: flex-start;
+  border: none; 
+  box-shadow: none;
+  outline: none;
+  outline-offset: unset;margin-top: 0;
+}
+
+.section.form-image .contact .icon-success {
+  margin-top: 0.2rem;
+}
+
+.section.form-image .contact .field {
+  margin-bottom: 1.5rem;
+}
+
+@media screen and (min-width: 750px) {
+ .section.form-image .contact .field {
+    margin-bottom: 2rem;
+  }
+}
+
+.section.form-image .contact__button {
+  margin-top: 2rem;
+}
+
+@media screen and (min-width: 750px) {
+ .section.form-image  .contact__button {
+    margin-top: 2rem;
+  }
+}
+
+@media screen and (min-width: 750px) {
+  .contact__fields {
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+    grid-column-gap: 2rem;
+  }
+}
+
+ .section.form-image .field .field__input{padding:1rem 2rem;}
+.grecaptcha-badge {
+  visibility: hidden;
+}
+/* form#ContactForm{ margin-top:5rem;} */
+
+.field__input{ border: 1px solid rgba(var(--color-base-accent-1), 0.2);}
+ .section.form-image .field__input{background-color: rgba(var(--color-foreground),0);}
+.section.form-image .form-contact{    display: flex; align-items: flex-start; flex-wrap: wrap; }
+.section.form-image  .contact .title-wrapper--no-top-margin span{    
+  display: block;
+    font-size: 3.5rem;
+    color: var(--color-icon);
+    font-weight: 400;
+    margin-bottom: 30px;
+    font-family: var(--font-heading-family);}
+
+.collapsible_address-block .address-blocks{display: grid;grid-template-columns: repeat(1, 1fr);}
+.collapsible_address-block .address-blocks li {display: flex; flex-direction: row; text-align: left;align-items: center;}
+
+.collapsible_address-block .address-blocks li .contact-icons{display: flex;justify-content:flex-start;margin-right: 15px;}
+.address-block-heading h3.address-block-heading {
+    padding: 0 0 30px;
+}
+.collapsible_address-block .address-blocks li a{width:max-content;}
+.form-contact .map-contact-detail {margin-top: 30px;width:100%;}
+.form-contact .layout-contact-left{margin-top: 0px;}
+.form-contact .collapsible_address-block .address-block-heading {
+    text-align: left;
+    margin: 0 0 10px;
+    font-weight: 500;
+    text-transform: capitalize;
+}
+.custom-support-block .support-block-list__item.grid__items .support-block-card__info p {
+    font-size: 16px;
+    letter-spacing: 3px;
+    font-weight: 500;
+    line-height: 30px;
+    max-width: 39rem;
+    margin: 0 auto;
+}
+.collapsible-contact {
+    margin-bottom: 6rem;
+}
+p.address-block-desc {
+    margin: 0;
+}
+.collapsible_address-block .address-blocks li:not(:last-child) {
+    margin-bottom: 4rem;
+}
+.address-1 p.address-block-desc {
+    font-size: 20px;
+    font-weight: 500;
+}
+@media screen and (max-width: 1199px) {
+.collapsible_address-block .address-blocks li span svg{width:3rem;height:3rem;} }
+@media screen and (min-width: 1200px) {
+.collapsible_address-block .address-blocks li span svg{width:4rem;height:4rem;} }
+@media (max-width:576px){
+.section.form-image .contact .title{ font-size:2.4rem;}
+.collapsible_address-block .address-blocks{grid-template-columns: repeat(1, 1fr);grid-gap:30px;}  
+}
+@media screen and (max-width: 1199px) {
+ .form-with-image .title-wrapper-with-link .title{ font-size:3rem;} }
+
+.section-contact-form .page-width{max-width:120rem; margin:auto;} 
+.section.form-image .form-contact.form-with-image .title-wrapper-with-link{ margin-bottom:4rem;}
+@media screen and (max-width: 767px) {
+.address-block-heading h3.address-block-heading{     font-size: calc(var(--font-heading-scale) * 2.4rem);
+    padding: 0 0 10px; } }
+
+@media screen and (max-width: 990px) {
+.collapsible_address-block .address-blocks li{
+          align-items: center;
+        justify-content: center;
+}
+  .collapsible_address-block .address-blocks li {
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    align-items: center;
+    justify-content: center;
+}
+  .form-contact .collapsible_address-block .address-block-heading, .form-contact .collapsible-contact{
+    text-align: center;
+  }
+}

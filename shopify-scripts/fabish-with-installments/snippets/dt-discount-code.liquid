@@ -1,0 +1,160 @@
+<style>
+  .cart-sidebar-discount {
+    display: flex;
+    flex-direction: column;
+    width:100%;
+    margin: 20px auto 0;
+  }
+  .cart-sidebar-discount input {
+    margin-top:20px;
+    /* background: #eee; */
+    border: 1px solid #eee;
+    height:50px;
+    outline: none;
+    font-size: var(--font-base-size);
+    /* letter-spacing: .75px; */
+    text-align: center;
+  }
+  #apply-discount-btn {
+
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+  }
+  span.applied-discount-code-value>small {
+    background: #eee;
+    padding: 0px 10px;
+    color: #000;
+    font-weight: bold;
+    border-radius: 20px;
+  }
+  .loader {
+    border: 5px solid #f3f3f3;
+    border-top: 4px solid #000;
+    border-radius: 50%;
+    width: 25px;
+    height: 25px;
+    animation: spin .5s linear infinite;
+  }
+  #discount-code-error {
+   background: #ff00004f;
+    color: #e22120;
+    padding: 5px;
+    border-radius: 4px;
+    font-size: calc(var(--font-base-size) - 4px);
+    line-height: 1;
+    text-align: center;
+  }
+  .applied-discount-code-wrapper {
+    display: none;
+    background: #ddd;
+    padding: 3px 6px;
+    border-radius: 25px;
+  }
+  .applied-discount-code-value {
+    font-size: 13px;
+    text-transform: uppercase;
+  }
+
+  #discount-code-error:empty {
+    display: none;
+  }
+  .applied-discount-code-value:empty+button {
+    display: none;
+  }
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  @media screen and (max-width: 576px) {
+  .cart-sidebar-discount {width:100%;}
+  }
+</style>
+
+<div class="cart-sidebar-discount discount">
+  <span id="applied-discount-code">
+    <span class="applied-discount-code-wrapper">
+      <span class="applied-discount-code-value"></span>
+      <button id="clear-discount-btn">{% render 'icon-close' %}</button>
+    </span>
+  </span>
+  <small id="discount-code-error"></small>
+  <input
+    type="text"
+    class="discount-code"
+    id="discount-code-input"
+    placeholder=""
+    autocomplete="on"
+    value=""
+  >
+  <button id="apply-discount-btn" class="button button-primary">Apply</button>
+  <p id="discount-message" style="color: red; display: none;"></p>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function (event) {
+  let clearBtn = document.querySelector("#clear-discount-btn");
+  let applyBtn = document.querySelector("#apply-discount-btn");
+  let discountCodeError = document.querySelector("#discount-code-error");
+  let discountCodeWrapper = document.querySelector("#applied-discount-code .applied-discount-code-wrapper");
+  let discountCodeValue = document.querySelector("#applied-discount-code .applied-discount-code-value");
+  let discountCodeInput = document.querySelector("#discount-code-input");
+  let totalCartSelector = document.querySelector(".cart__subtotal .money");
+  
+  if (applyBtn) {
+    applyBtn.addEventListener("click", function (e) {
+      e.preventDefault();
+      applyDiscount();
+    });
+  }
+
+   async function applyDiscount() {
+  const discountCode = discountCodeInput.value.trim();
+  if (!discountCode) return;
+
+    try { 
+    const checkResponse = await fetch(`/discount/${encodeURIComponent(discountCode)}`);
+    if (!checkResponse.ok) throw new Error("Invalid code"); 
+    await fetch("/cart/update.js", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ discounts: discountCode }),
+    });
+ 
+    await refreshCartUI();  
+
+    showMessage("  Discount applied!", false);
+    window.location.href='/cart';
+    console.log("Discount applied!")
+  } catch (error) {
+    showMessage(`  Error: ${error.message}`, true);
+  }
+} 
+async function refreshCartUI() { 
+  const cart = await fetch("/cart.js").then(res => res.json()); 
+  const cartCount = document.querySelector(".cart-count");
+  if (cartCount) cartCount.textContent = cart.item_count; 
+  const subtotalEl = document.querySelector(".cart__subtotal .money");
+  if (subtotalEl) subtotalEl.textContent = Shopify.formatMoney(cart.total_price); 
+  const discountEl = document.querySelector(".cart-discount");
+  if (discountEl) {
+    const discount = cart.discount_applications?.[0];
+    
+  } 
+  
+}
+
+  function showMessage(text, isError) {
+    if (!discountCodeError) return;
+    discountCodeError.textContent = text;
+    discountCodeError.style.color = isError ? '#ff0000' : '#008000';
+    discountCodeError.style.display = 'block'; 
+    setTimeout(() => {
+      discountCodeError.style.display = 'none';
+    }, 5000);
+  }
+});
+  
+</script>

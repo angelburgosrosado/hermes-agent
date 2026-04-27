@@ -1,0 +1,103 @@
+ <link rel="stylesheet" href="{{ 'quick-add.css' | asset_url }}" media="print" onload="this.media='all'">
+  <script src="{{ 'quick-add.js' | asset_url }}" defer="defer"></script>
+  <script src="{{ 'product-form.js' | asset_url }}" defer="defer"></script>
+  
+{% if product == empty %}
+{%- assign section_onboarding = true -%}
+{% endif %}
+{% unless section_onboarding %}
+{%- assign collection = block.settings.collection -%}  
+{% if collection != blank %}
+   <mega-menu-slider>
+      <div data-slider-options='{"loop": "2","desktop": "2", "laptop": "2", "tablet": "1","mobile": "1","auto_play": "true"}'>
+      <div class="mega-collection__wrapper">
+        <h6 class="mega-collection__heading">{{ block.settings.collection_name }}</h6>
+        <div class="mega-collection-buttons">
+          <div class="swiper-button-prev dt-mega-coll__prev">
+            <span><svg xmlns="http://www.w3.org/2000/svg" width="27" height="16" viewBox="0 0 27 16" fill="none">
+                  <path d="M4.31117 10.32L1.45117 8.01928L4.31117 5.71997" stroke="black" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M1.56329 7.85999L25.3833 7.85999" stroke="black" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg></span>
+          </div>
+          <div class="swiper-button-next dt-mega-coll__next">
+            <span><svg xmlns="http://www.w3.org/2000/svg" width="27" height="16" viewBox="0 0 27 16" fill="none">
+                  <path d="M22.64 5.68003L25.5 7.98072L22.64 10.28" stroke="black" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M25.3879 8.14001L1.56788 8.14001" stroke="black" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg></span>
+          </div>
+        </div>
+      </div>
+      <div class="swiper" data-swiper-slider>
+      <div id="Slider-{{ section.id }}" class="product-grid contains-card swiper-wrapper">
+        {%  for product in collection.products %}
+        <div class="dt-sc-menu-product swiper-slide card_style-{{ settings.card_style }}">
+         {%  case settings.card_style %}
+          {%  when 'standard' %}  
+            {% render 'card-product',
+              card_product: product,
+              media_aspect_ratio: section.settings.image_ratio ,
+              show_secondary_image: section.settings.show_secondary_image,
+              show_vendor: false,
+              show_rating: false,
+              show_quick_add: false,
+              show_quick_view: false,
+              show_new_tag: section.settings.show_new_tag,
+              section_id: section.id
+            %}
+        {%  when 'button_width_icons' %}
+             {% render 'card-product-2',
+              card_product: product,
+              media_aspect_ratio: section.settings.image_ratio,
+              show_secondary_image: section.settings.show_secondary_image,
+              show_vendor: false,
+              show_rating: false,
+              show_quick_add: false,
+              show_quick_view: false,
+              show_new_tag: section.settings.show_new_tag,
+              section_id: section.id
+            %}
+        {%  when 'card_with_icons' %} 
+             {% render 'card-product-3',
+              card_product: product,
+              media_aspect_ratio: section.settings.image_ratio,
+              show_secondary_image: section.settings.show_secondary_image,
+              show_vendor: false,
+              show_rating: false,
+              show_quick_add: false,
+               show_quick_view: false,
+              show_new_tag: section.settings.show_new_tag,
+              section_id: section.id
+            %}
+        {%  when 'card_with_buttons' %}  
+             {% render 'card-product-4',
+              card_product: product,
+              media_aspect_ratio: section.settings.image_ratio,
+              show_secondary_image: section.settings.show_secondary_image,
+              show_vendor: false,
+              show_rating: false,
+              show_quick_add: false,
+              show_quick_view: false,
+              show_new_tag: section.settings.show_new_tag,
+              section_id: section.id
+            %}
+        {%  when 'card_with_overlay' %}  
+             {% render 'card-product-5',
+              card_product: product,
+              media_aspect_ratio: section.settings.image_ratio,
+              show_secondary_image: section.settings.show_secondary_image,
+              show_vendor: false,
+              show_rating: false,
+              show_quick_add: false,
+              show_quick_view: false,
+              show_new_tag: section.settings.show_new_tag,
+              section_id: section.id
+            %}
+        {%  endcase %}
+</div>        
+{% endfor %}
+      </div>
+      </div>
+      </div>
+   </mega-menu-slider>
+{% endif %}
+{% endunless %}

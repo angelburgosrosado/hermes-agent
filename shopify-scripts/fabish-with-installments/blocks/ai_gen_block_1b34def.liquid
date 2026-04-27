@@ -1,0 +1,953 @@
+{% doc %}
+  @prompt
+    a micro funnel setup 
+{% enddoc %}
+{% assign ai_gen_id = block.id | replace: '_', '' | downcase %}
+
+{% style %}
+  .ai-micro-funnel-{{ ai_gen_id }} {
+    display: block;
+    width: {{ block.settings.desktop_width_percent }}%;
+    max-width: 100%;
+    margin: 0 auto;
+    padding: {{ block.settings.padding_vertical }}px {{ block.settings.padding_horizontal }}px;
+    background-color: {{ block.settings.background_color }};
+    border-radius: {{ block.settings.border_radius }}px;
+  }
+
+  .ai-micro-funnel__container-{{ ai_gen_id }} {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .ai-micro-funnel__progress-bar-{{ ai_gen_id }} {
+    width: 100%;
+    height: 8px;
+    background-color: {{ block.settings.progress_bg_color }};
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 40px;
+  }
+
+  .ai-micro-funnel__progress-fill-{{ ai_gen_id }} {
+    height: 100%;
+    background-color: {{ block.settings.progress_fill_color }};
+    transition: width 0.3s ease;
+    width: 0%;
+  }
+
+  .ai-micro-funnel__step-{{ ai_gen_id }} {
+    display: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .ai-micro-funnel__step-{{ ai_gen_id }}.active {
+    display: block;
+    opacity: 1;
+  }
+
+  .ai-micro-funnel__step-header-{{ ai_gen_id }} {
+    text-align: center;
+    margin-bottom: 30px;
+  }
+
+  .ai-micro-funnel__step-number-{{ ai_gen_id }} {
+    font-size: 14px;
+    color: {{ block.settings.text_color }};
+    opacity: 0.7;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .ai-micro-funnel__step-title-{{ ai_gen_id }} {
+    font-size: {{ block.settings.heading_size }}px;
+    color: {{ block.settings.heading_color }};
+    margin: 0 0 15px;
+    font-weight: 600;
+  }
+
+  .ai-micro-funnel__step-description-{{ ai_gen_id }} {
+    font-size: {{ block.settings.text_size }}px;
+    color: {{ block.settings.text_color }};
+    line-height: 1.6;
+  }
+
+  .ai-micro-funnel__options-{{ ai_gen_id }} {
+    display: grid;
+    gap: 15px;
+    margin-bottom: 30px;
+  }
+
+  .ai-micro-funnel__option-{{ ai_gen_id }} {
+    padding: 20px;
+    background-color: {{ block.settings.option_bg_color }};
+    border: 2px solid {{ block.settings.option_border_color }};
+    border-radius: {{ block.settings.option_border_radius }}px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: left;
+  }
+
+  .ai-micro-funnel__option-{{ ai_gen_id }}:hover {
+    border-color: {{ block.settings.option_hover_border_color }};
+    background-color: {{ block.settings.option_hover_bg_color }};
+  }
+
+  .ai-micro-funnel__option-{{ ai_gen_id }}.selected {
+    border-color: {{ block.settings.option_selected_border_color }};
+    background-color: {{ block.settings.option_selected_bg_color }};
+  }
+
+  .ai-micro-funnel__option-title-{{ ai_gen_id }} {
+    font-size: 18px;
+    font-weight: 600;
+    color: {{ block.settings.heading_color }};
+    margin: 0 0 5px;
+  }
+
+  .ai-micro-funnel__option-description-{{ ai_gen_id }} {
+    font-size: 14px;
+    color: {{ block.settings.text_color }};
+    margin: 0;
+  }
+
+  .ai-micro-funnel__input-group-{{ ai_gen_id }} {
+    margin-bottom: 20px;
+  }
+
+  .ai-micro-funnel__label-{{ ai_gen_id }} {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: {{ block.settings.heading_color }};
+    margin-bottom: 8px;
+  }
+
+  .ai-micro-funnel__input-{{ ai_gen_id }} {
+    width: 100%;
+    padding: 12px 16px;
+    font-size: 16px;
+    border: 2px solid {{ block.settings.option_border_color }};
+    border-radius: {{ block.settings.option_border_radius }}px;
+    background-color: {{ block.settings.option_bg_color }};
+    color: {{ block.settings.text_color }};
+  }
+
+  .ai-micro-funnel__input-{{ ai_gen_id }}:focus {
+    outline: none;
+    border-color: {{ block.settings.option_selected_border_color }};
+  }
+
+  .ai-micro-funnel__buttons-{{ ai_gen_id }} {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-top: 30px;
+  }
+
+  .ai-micro-funnel__button-{{ ai_gen_id }} {
+    padding: 14px 32px;
+    font-size: 16px;
+    font-weight: 600;
+    border: none;
+    border-radius: {{ block.settings.button_border_radius }}px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .ai-micro-funnel__button-primary-{{ ai_gen_id }} {
+    background-color: {{ block.settings.button_bg_color }};
+    color: {{ block.settings.button_text_color }};
+  }
+
+  .ai-micro-funnel__button-primary-{{ ai_gen_id }}:hover {
+    background-color: {{ block.settings.button_hover_bg_color }};
+  }
+
+  .ai-micro-funnel__button-primary-{{ ai_gen_id }}:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .ai-micro-funnel__button-secondary-{{ ai_gen_id }} {
+    background-color: transparent;
+    color: {{ block.settings.text_color }};
+    border: 2px solid {{ block.settings.option_border_color }};
+  }
+
+  .ai-micro-funnel__button-secondary-{{ ai_gen_id }}:hover {
+    border-color: {{ block.settings.heading_color }};
+  }
+
+  .ai-micro-funnel__final-step-{{ ai_gen_id }} {
+    text-align: center;
+  }
+
+  .ai-micro-funnel__success-icon-{{ ai_gen_id }} {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 20px;
+    background-color: {{ block.settings.progress_fill_color }};
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .ai-micro-funnel__success-icon-{{ ai_gen_id }} svg {
+    width: 40px;
+    height: 40px;
+    stroke: white;
+  }
+
+  .ai-micro-funnel__product-card-{{ ai_gen_id }} {
+    display: flex;
+    gap: 20px;
+    padding: 20px;
+    background-color: {{ block.settings.option_bg_color }};
+    border: 2px solid {{ block.settings.option_border_color }};
+    border-radius: {{ block.settings.option_border_radius }}px;
+    margin-bottom: 20px;
+  }
+
+  .ai-micro-funnel__product-image-{{ ai_gen_id }} {
+    width: 120px;
+    height: 120px;
+    flex-shrink: 0;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .ai-micro-funnel__product-image-{{ ai_gen_id }} img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .ai-micro-funnel__product-info-{{ ai_gen_id }} {
+    flex-grow: 1;
+  }
+
+  .ai-micro-funnel__product-title-{{ ai_gen_id }} {
+    font-size: 20px;
+    font-weight: 600;
+    color: {{ block.settings.heading_color }};
+    margin: 0 0 10px;
+  }
+
+  .ai-micro-funnel__product-price-{{ ai_gen_id }} {
+    font-size: 24px;
+    font-weight: 700;
+    color: {{ block.settings.progress_fill_color }};
+    margin-bottom: 10px;
+  }
+
+  .ai-micro-funnel__product-description-{{ ai_gen_id }} {
+    font-size: 14px;
+    color: {{ block.settings.text_color }};
+    line-height: 1.5;
+  }
+
+  @media screen and (max-width: 749px) {
+    .ai-micro-funnel-{{ ai_gen_id }} {
+      padding: {{ block.settings.padding_vertical | times: 0.7 }}px {{ block.settings.padding_horizontal | times: 0.7 }}px;
+    }
+
+    .ai-micro-funnel__step-title-{{ ai_gen_id }} {
+      font-size: {{ block.settings.heading_size | times: 0.8 }}px;
+    }
+
+    .ai-micro-funnel__buttons-{{ ai_gen_id }} {
+      flex-direction: column;
+    }
+
+    .ai-micro-funnel__button-{{ ai_gen_id }} {
+      width: 100%;
+    }
+
+    .ai-micro-funnel__product-card-{{ ai_gen_id }} {
+      flex-direction: column;
+    }
+
+    .ai-micro-funnel__product-image-{{ ai_gen_id }} {
+      width: 100%;
+      height: 200px;
+    }
+  }
+{% endstyle %}
+
+<micro-funnel-{{ ai_gen_id }} class="ai-micro-funnel-{{ ai_gen_id }}" {{ block.shopify_attributes }}>
+  <div class="ai-micro-funnel__container-{{ ai_gen_id }}">
+    <div class="ai-micro-funnel__progress-bar-{{ ai_gen_id }}">
+      <div class="ai-micro-funnel__progress-fill-{{ ai_gen_id }}" data-progress></div>
+    </div>
+
+    <div class="ai-micro-funnel__step-{{ ai_gen_id }} active" data-step="1">
+      <div class="ai-micro-funnel__step-header-{{ ai_gen_id }}">
+        <div class="ai-micro-funnel__step-number-{{ ai_gen_id }}">Step 1 of 4</div>
+        <h2 class="ai-micro-funnel__step-title-{{ ai_gen_id }}">{{ block.settings.step1_title }}</h2>
+        <div class="ai-micro-funnel__step-description-{{ ai_gen_id }}">{{ block.settings.step1_description }}</div>
+      </div>
+      <div class="ai-micro-funnel__options-{{ ai_gen_id }}">
+        <div class="ai-micro-funnel__option-{{ ai_gen_id }}" data-option="option1">
+          <div class="ai-micro-funnel__option-title-{{ ai_gen_id }}">{{ block.settings.step1_option1_title }}</div>
+          <div class="ai-micro-funnel__option-description-{{ ai_gen_id }}">{{ block.settings.step1_option1_desc }}</div>
+        </div>
+        <div class="ai-micro-funnel__option-{{ ai_gen_id }}" data-option="option2">
+          <div class="ai-micro-funnel__option-title-{{ ai_gen_id }}">{{ block.settings.step1_option2_title }}</div>
+          <div class="ai-micro-funnel__option-description-{{ ai_gen_id }}">{{ block.settings.step1_option2_desc }}</div>
+        </div>
+        <div class="ai-micro-funnel__option-{{ ai_gen_id }}" data-option="option3">
+          <div class="ai-micro-funnel__option-title-{{ ai_gen_id }}">{{ block.settings.step1_option3_title }}</div>
+          <div class="ai-micro-funnel__option-description-{{ ai_gen_id }}">{{ block.settings.step1_option3_desc }}</div>
+        </div>
+      </div>
+      <div class="ai-micro-funnel__buttons-{{ ai_gen_id }}">
+        <button class="ai-micro-funnel__button-{{ ai_gen_id }} ai-micro-funnel__button-primary-{{ ai_gen_id }}" data-next disabled>
+          Continue
+        </button>
+      </div>
+    </div>
+
+    <div class="ai-micro-funnel__step-{{ ai_gen_id }}" data-step="2">
+      <div class="ai-micro-funnel__step-header-{{ ai_gen_id }}">
+        <div class="ai-micro-funnel__step-number-{{ ai_gen_id }}">Step 2 of 4</div>
+        <h2 class="ai-micro-funnel__step-title-{{ ai_gen_id }}">{{ block.settings.step2_title }}</h2>
+        <div class="ai-micro-funnel__step-description-{{ ai_gen_id }}">{{ block.settings.step2_description }}</div>
+      </div>
+      <div class="ai-micro-funnel__options-{{ ai_gen_id }}">
+        <div class="ai-micro-funnel__option-{{ ai_gen_id }}" data-option="option1">
+          <div class="ai-micro-funnel__option-title-{{ ai_gen_id }}">{{ block.settings.step2_option1_title }}</div>
+          <div class="ai-micro-funnel__option-description-{{ ai_gen_id }}">{{ block.settings.step2_option1_desc }}</div>
+        </div>
+        <div class="ai-micro-funnel__option-{{ ai_gen_id }}" data-option="option2">
+          <div class="ai-micro-funnel__option-title-{{ ai_gen_id }}">{{ block.settings.step2_option2_title }}</div>
+          <div class="ai-micro-funnel__option-description-{{ ai_gen_id }}">{{ block.settings.step2_option2_desc }}</div>
+        </div>
+        <div class="ai-micro-funnel__option-{{ ai_gen_id }}" data-option="option3">
+          <div class="ai-micro-funnel__option-title-{{ ai_gen_id }}">{{ block.settings.step2_option3_title }}</div>
+          <div class="ai-micro-funnel__option-description-{{ ai_gen_id }}">{{ block.settings.step2_option3_desc }}</div>
+        </div>
+      </div>
+      <div class="ai-micro-funnel__buttons-{{ ai_gen_id }}">
+        <button class="ai-micro-funnel__button-{{ ai_gen_id }} ai-micro-funnel__button-secondary-{{ ai_gen_id }}" data-back>
+          Back
+        </button>
+        <button class="ai-micro-funnel__button-{{ ai_gen_id }} ai-micro-funnel__button-primary-{{ ai_gen_id }}" data-next disabled>
+          Continue
+        </button>
+      </div>
+    </div>
+
+    <div class="ai-micro-funnel__step-{{ ai_gen_id }}" data-step="3">
+      <div class="ai-micro-funnel__step-header-{{ ai_gen_id }}">
+        <div class="ai-micro-funnel__step-number-{{ ai_gen_id }}">Step 3 of 4</div>
+        <h2 class="ai-micro-funnel__step-title-{{ ai_gen_id }}">{{ block.settings.step3_title }}</h2>
+        <div class="ai-micro-funnel__step-description-{{ ai_gen_id }}">{{ block.settings.step3_description }}</div>
+      </div>
+      <div class="ai-micro-funnel__input-group-{{ ai_gen_id }}">
+        <label class="ai-micro-funnel__label-{{ ai_gen_id }}" for="funnel-name-{{ ai_gen_id }}">
+          {{ block.settings.step3_name_label }}
+        </label>
+        <input
+          type="text"
+          id="funnel-name-{{ ai_gen_id }}"
+          class="ai-micro-funnel__input-{{ ai_gen_id }}"
+          placeholder="{{ block.settings.step3_name_placeholder }}"
+          data-input="name"
+          required
+        >
+      </div>
+      <div class="ai-micro-funnel__input-group-{{ ai_gen_id }}">
+        <label class="ai-micro-funnel__label-{{ ai_gen_id }}" for="funnel-email-{{ ai_gen_id }}">
+          {{ block.settings.step3_email_label }}
+        </label>
+        <input
+          type="email"
+          id="funnel-email-{{ ai_gen_id }}"
+          class="ai-micro-funnel__input-{{ ai_gen_id }}"
+          placeholder="{{ block.settings.step3_email_placeholder }}"
+          data-input="email"
+          required
+        >
+      </div>
+      <div class="ai-micro-funnel__buttons-{{ ai_gen_id }}">
+        <button class="ai-micro-funnel__button-{{ ai_gen_id }} ai-micro-funnel__button-secondary-{{ ai_gen_id }}" data-back>
+          Back
+        </button>
+        <button class="ai-micro-funnel__button-{{ ai_gen_id }} ai-micro-funnel__button-primary-{{ ai_gen_id }}" data-next disabled>
+          Continue
+        </button>
+      </div>
+    </div>
+
+    <div class="ai-micro-funnel__step-{{ ai_gen_id }}" data-step="4">
+      <div class="ai-micro-funnel__step-header-{{ ai_gen_id }}">
+        <div class="ai-micro-funnel__step-number-{{ ai_gen_id }}">Step 4 of 4</div>
+        <h2 class="ai-micro-funnel__step-title-{{ ai_gen_id }}">{{ block.settings.step4_title }}</h2>
+        <div class="ai-micro-funnel__step-description-{{ ai_gen_id }}">{{ block.settings.step4_description }}</div>
+      </div>
+      
+      {% if block.settings.recommended_product %}
+        <div class="ai-micro-funnel__product-card-{{ ai_gen_id }}">
+          <div class="ai-micro-funnel__product-image-{{ ai_gen_id }}">
+            {% if block.settings.recommended_product.featured_image %}
+              <img
+                src="{{ block.settings.recommended_product.featured_image | image_url: width: 240 }}"
+                alt="{{ block.settings.recommended_product.featured_image.alt | escape }}"
+                loading="lazy"
+                width="240"
+                height="240"
+              >
+            {% endif %}
+          </div>
+          <div class="ai-micro-funnel__product-info-{{ ai_gen_id }}">
+            <h3 class="ai-micro-funnel__product-title-{{ ai_gen_id }}">
+              {{ block.settings.recommended_product.title }}
+            </h3>
+            <div class="ai-micro-funnel__product-price-{{ ai_gen_id }}">
+              {{ block.settings.recommended_product.price | money }}
+            </div>
+            <div class="ai-micro-funnel__product-description-{{ ai_gen_id }}">
+              {{ block.settings.recommended_product.description | strip_html | truncate: 120 }}
+            </div>
+          </div>
+        </div>
+      {% endif %}
+
+      <div class="ai-micro-funnel__buttons-{{ ai_gen_id }}">
+        <button class="ai-micro-funnel__button-{{ ai_gen_id }} ai-micro-funnel__button-secondary-{{ ai_gen_id }}" data-back>
+          Back
+        </button>
+        {% if block.settings.recommended_product %}
+          <a
+            href="{{ block.settings.recommended_product.url }}"
+            class="ai-micro-funnel__button-{{ ai_gen_id }} ai-micro-funnel__button-primary-{{ ai_gen_id }}"
+            style="text-decoration: none; display: inline-block;"
+          >
+            {{ block.settings.final_button_text }}
+          </a>
+        {% else %}
+          <button class="ai-micro-funnel__button-{{ ai_gen_id }} ai-micro-funnel__button-primary-{{ ai_gen_id }}" data-complete>
+            {{ block.settings.final_button_text }}
+          </button>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="ai-micro-funnel__step-{{ ai_gen_id }}" data-step="5">
+      <div class="ai-micro-funnel__final-step-{{ ai_gen_id }}">
+        <div class="ai-micro-funnel__success-icon-{{ ai_gen_id }}">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        </div>
+        <h2 class="ai-micro-funnel__step-title-{{ ai_gen_id }}">{{ block.settings.success_title }}</h2>
+        <div class="ai-micro-funnel__step-description-{{ ai_gen_id }}">{{ block.settings.success_message }}</div>
+      </div>
+    </div>
+  </div>
+</micro-funnel-{{ ai_gen_id }}>
+
+<script>
+  (function() {
+    class MicroFunnel{{ ai_gen_id }} extends HTMLElement {
+      constructor() {
+        super();
+        this.currentStep = 1;
+        this.totalSteps = 4;
+        this.userData = {};
+      }
+
+      connectedCallback() {
+        this.steps = this.querySelectorAll('[data-step]');
+        this.progressFill = this.querySelector('[data-progress]');
+        this.nextButtons = this.querySelectorAll('[data-next]');
+        this.backButtons = this.querySelectorAll('[data-back]');
+        this.completeButton = this.querySelector('[data-complete]');
+        
+        this.setupEventListeners();
+        this.updateProgress();
+      }
+
+      setupEventListeners() {
+        this.querySelectorAll('[data-option]').forEach(option => {
+          option.addEventListener('click', (e) => {
+            const step = option.closest('[data-step]');
+            const stepNumber = step.getAttribute('data-step');
+            
+            step.querySelectorAll('[data-option]').forEach(opt => {
+              opt.classList.remove('selected');
+            });
+            
+            option.classList.add('selected');
+            
+            this.userData[`step${stepNumber}`] = option.getAttribute('data-option');
+            
+            const nextButton = step.querySelector('[data-next]');
+            if (nextButton) {
+              nextButton.disabled = false;
+            }
+          });
+        });
+
+        this.nextButtons.forEach(button => {
+          button.addEventListener('click', () => {
+            const currentStepEl = this.querySelector(`[data-step="${this.currentStep}"]`);
+            
+            if (this.currentStep === 3) {
+              const nameInput = currentStepEl.querySelector('[data-input="name"]');
+              const emailInput = currentStepEl.querySelector('[data-input="email"]');
+              
+              if (!nameInput.value || !emailInput.value) {
+                return;
+              }
+              
+              this.userData.name = nameInput.value;
+              this.userData.email = emailInput.value;
+            }
+            
+            this.goToStep(this.currentStep + 1);
+          });
+        });
+
+        this.backButtons.forEach(button => {
+          button.addEventListener('click', () => {
+            this.goToStep(this.currentStep - 1);
+          });
+        });
+
+        if (this.completeButton) {
+          this.completeButton.addEventListener('click', () => {
+            this.goToStep(5);
+          });
+        }
+
+        const nameInput = this.querySelector('[data-input="name"]');
+        const emailInput = this.querySelector('[data-input="email"]');
+        
+        if (nameInput && emailInput) {
+          const validateInputs = () => {
+            const step3 = this.querySelector('[data-step="3"]');
+            const nextButton = step3.querySelector('[data-next]');
+            
+            if (nameInput.value && emailInput.value && emailInput.validity.valid) {
+              nextButton.disabled = false;
+            } else {
+              nextButton.disabled = true;
+            }
+          };
+          
+          nameInput.addEventListener('input', validateInputs);
+          emailInput.addEventListener('input', validateInputs);
+        }
+      }
+
+      goToStep(stepNumber) {
+        this.steps.forEach(step => {
+          step.classList.remove('active');
+        });
+        
+        const targetStep = this.querySelector(`[data-step="${stepNumber}"]`);
+        if (targetStep) {
+          targetStep.classList.add('active');
+          this.currentStep = stepNumber;
+          this.updateProgress();
+          
+          targetStep.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+      }
+
+      updateProgress() {
+        const progress = (this.currentStep / this.totalSteps) * 100;
+        this.progressFill.style.width = `${progress}%`;
+      }
+    }
+
+    customElements.define('micro-funnel-{{ ai_gen_id }}', MicroFunnel{{ ai_gen_id }});
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Micro funnel",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "range",
+      "id": "desktop_width_percent",
+      "label": "Desktop width",
+      "min": 50,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "default": 100
+    },
+    {
+      "type": "range",
+      "id": "padding_vertical",
+      "label": "Vertical padding",
+      "min": 20,
+      "max": 100,
+      "step": 5,
+      "unit": "px",
+      "default": 60
+    },
+    {
+      "type": "range",
+      "id": "padding_horizontal",
+      "label": "Horizontal padding",
+      "min": 10,
+      "max": 60,
+      "step": 5,
+      "unit": "px",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "border_radius",
+      "label": "Border radius",
+      "min": 0,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "default": 8
+    },
+    {
+      "type": "header",
+      "content": "Colors"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "heading_color",
+      "label": "Heading",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text",
+      "default": "#5a5a5a"
+    },
+    {
+      "type": "color",
+      "id": "progress_bg_color",
+      "label": "Progress bar background",
+      "default": "#f5f5f5"
+    },
+    {
+      "type": "color",
+      "id": "progress_fill_color",
+      "label": "Progress bar fill",
+      "default": "#729855"
+    },
+    {
+      "type": "header",
+      "content": "Typography"
+    },
+    {
+      "type": "range",
+      "id": "heading_size",
+      "label": "Heading size",
+      "min": 20,
+      "max": 48,
+      "step": 2,
+      "unit": "px",
+      "default": 32
+    },
+    {
+      "type": "range",
+      "id": "text_size",
+      "label": "Text size",
+      "min": 12,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "header",
+      "content": "Options style"
+    },
+    {
+      "type": "color",
+      "id": "option_bg_color",
+      "label": "Background",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "option_border_color",
+      "label": "Border",
+      "default": "#f7e9e3"
+    },
+    {
+      "type": "color",
+      "id": "option_hover_bg_color",
+      "label": "Hover background",
+      "default": "#f9f9eb"
+    },
+    {
+      "type": "color",
+      "id": "option_hover_border_color",
+      "label": "Hover border",
+      "default": "#729855"
+    },
+    {
+      "type": "color",
+      "id": "option_selected_bg_color",
+      "label": "Selected background",
+      "default": "#f9f9eb"
+    },
+    {
+      "type": "color",
+      "id": "option_selected_border_color",
+      "label": "Selected border",
+      "default": "#729855"
+    },
+    {
+      "type": "range",
+      "id": "option_border_radius",
+      "label": "Border radius",
+      "min": 0,
+      "max": 20,
+      "step": 2,
+      "unit": "px",
+      "default": 8
+    },
+    {
+      "type": "header",
+      "content": "Button style"
+    },
+    {
+      "type": "color",
+      "id": "button_bg_color",
+      "label": "Background",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "button_text_color",
+      "label": "Text",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "button_hover_bg_color",
+      "label": "Hover background",
+      "default": "#729855"
+    },
+    {
+      "type": "range",
+      "id": "button_border_radius",
+      "label": "Border radius",
+      "min": 0,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "default": 4
+    },
+    {
+      "type": "header",
+      "content": "Step 1"
+    },
+    {
+      "type": "text",
+      "id": "step1_title",
+      "label": "Title",
+      "default": "What brings you here today?"
+    },
+    {
+      "type": "text",
+      "id": "step1_description",
+      "label": "Description",
+      "default": "Help us understand your needs better"
+    },
+    {
+      "type": "text",
+      "id": "step1_option1_title",
+      "label": "Option 1 title",
+      "default": "Looking for natural remedies"
+    },
+    {
+      "type": "text",
+      "id": "step1_option1_desc",
+      "label": "Option 1 description",
+      "default": "Explore our herbal solutions"
+    },
+    {
+      "type": "text",
+      "id": "step1_option2_title",
+      "label": "Option 2 title",
+      "default": "Managing specific health concerns"
+    },
+    {
+      "type": "text",
+      "id": "step1_option2_desc",
+      "label": "Option 2 description",
+      "default": "Find targeted wellness support"
+    },
+    {
+      "type": "text",
+      "id": "step1_option3_title",
+      "label": "Option 3 title",
+      "default": "General wellness improvement"
+    },
+    {
+      "type": "text",
+      "id": "step1_option3_desc",
+      "label": "Option 3 description",
+      "default": "Boost your overall health"
+    },
+    {
+      "type": "header",
+      "content": "Step 2"
+    },
+    {
+      "type": "text",
+      "id": "step2_title",
+      "label": "Title",
+      "default": "What is your primary goal?"
+    },
+    {
+      "type": "text",
+      "id": "step2_description",
+      "label": "Description",
+      "default": "Select the outcome you want to achieve"
+    },
+    {
+      "type": "text",
+      "id": "step2_option1_title",
+      "label": "Option 1 title",
+      "default": "Better sleep quality"
+    },
+    {
+      "type": "text",
+      "id": "step2_option1_desc",
+      "label": "Option 1 description",
+      "default": "Rest and recover naturally"
+    },
+    {
+      "type": "text",
+      "id": "step2_option2_title",
+      "label": "Option 2 title",
+      "default": "Stress relief"
+    },
+    {
+      "type": "text",
+      "id": "step2_option2_desc",
+      "label": "Option 2 description",
+      "default": "Find calm and balance"
+    },
+    {
+      "type": "text",
+      "id": "step2_option3_title",
+      "label": "Option 3 title",
+      "default": "Energy boost"
+    },
+    {
+      "type": "text",
+      "id": "step2_option3_desc",
+      "label": "Option 3 description",
+      "default": "Feel more vibrant daily"
+    },
+    {
+      "type": "header",
+      "content": "Step 3"
+    },
+    {
+      "type": "text",
+      "id": "step3_title",
+      "label": "Title",
+      "default": "Get your personalized recommendation"
+    },
+    {
+      "type": "text",
+      "id": "step3_description",
+      "label": "Description",
+      "default": "Enter your details to receive tailored product suggestions"
+    },
+    {
+      "type": "text",
+      "id": "step3_name_label",
+      "label": "Name field label",
+      "default": "Your name"
+    },
+    {
+      "type": "text",
+      "id": "step3_name_placeholder",
+      "label": "Name placeholder"
+    },
+    {
+      "type": "text",
+      "id": "step3_email_label",
+      "label": "Email field label",
+      "default": "Email address"
+    },
+    {
+      "type": "text",
+      "id": "step3_email_placeholder",
+      "label": "Email placeholder"
+    },
+    {
+      "type": "header",
+      "content": "Step 4"
+    },
+    {
+      "type": "text",
+      "id": "step4_title",
+      "label": "Title",
+      "default": "Perfect match for you"
+    },
+    {
+      "type": "text",
+      "id": "step4_description",
+      "label": "Description",
+      "default": "Based on your answers, we recommend this product"
+    },
+    {
+      "type": "product",
+      "id": "recommended_product",
+      "label": "Recommended product"
+    },
+    {
+      "type": "text",
+      "id": "final_button_text",
+      "label": "Final button text",
+      "default": "View product"
+    },
+    {
+      "type": "header",
+      "content": "Success message"
+    },
+    {
+      "type": "text",
+      "id": "success_title",
+      "label": "Title",
+      "default": "Thank you!"
+    },
+    {
+      "type": "text",
+      "id": "success_message",
+      "label": "Message",
+      "default": "We appreciate your time. Check your email for personalized recommendations."
+    }
+  ],
+  "presets": [
+    {
+      "name": "Micro funnel"
+    }
+  ]
+}
+{% endschema %}

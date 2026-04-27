@@ -1,0 +1,276 @@
+
+{%- style -%}
+    .section-{{ section.id }}-padding {
+    padding-top: {{ section.settings.padding_top | times: 0.50 | round: 0 }}px;
+    padding-bottom: {{ section.settings.padding_bottom | times: 0.50 | round: 0 }}px;
+  }
+   @media screen and (min-width: 576px) and (max-width: 749px){
+   .section-{{ section.id }}-padding {
+    padding-top: {{ section.settings.padding_top | times: 0.75 | round: 0 }}px;
+    padding-bottom: {{ section.settings.padding_bottom | times: 0.75 | round: 0 }}px;
+  }
+   }
+  @media screen and (min-width: 750px) {
+    .section-{{ section.id }}-padding {
+      padding-top: {{ section.settings.padding_top }}px;
+      padding-bottom: {{ section.settings.padding_bottom }}px;
+    }
+  }
+  .contact-block_wrapper .contact-social li.list-social__item .list-social__link{padding:0;}
+  .contact-block_wrapper .contact-info{display: grid;grid-template-columns: repeat(3, 1fr);text-align: center;} 
+  .contact-block_wrapper .contact-info  .contact-heading{margin:0 0 10px;font-size:2rem;font-weight:500;line-height: normal;}
+  .contact-block_wrapper .link{text-decoration:none;}
+  .contact-block_wrapper .list-social{    align-items: center;    display: flex; justify-content: center;}
+  .contact-block_wrapper .contact-info .contact-address address{font-style: normal;}
+  .contact-block_wrapper .contact-info .contact-social .contact__list-social{margin:0;}
+  .contact-block_wrapper .contact-info .contact-social .contact__list-social li:not(:last-child) .list-social__link:after {
+    content: "-";
+    display: inline-block;
+    margin: 0 8px;color: rgb(var(--color-foreground));
+   }
+  .contact-block_wrapper .list-social__link:hover .icon{transform:none;}
+  .contact-block_wrapper .contact-info div{position:relative;}
+ @media screen and (min-width: 768px) {
+   .contact-block_wrapper .contact-info div:not(:last-child):after{content:'';background:var(--gradient-base-accent-2);width:1px;height:100%;display: inline-block;right: 0;position: absolute;top: 0;}
+ }
+  @media screen and (max-width: 767px) {
+     .contact-block_wrapper .contact-info div:first-child:after{content:'';background:var(--gradient-base-accent-2);width:1px;height:100%;display: inline-block;right: 0;position: absolute;top: 0;}
+    .contact-block_wrapper .contact-info{grid-template-columns: repeat(2, 1fr);grid-gap: 20px;}
+    .contact-block_wrapper .contact-info .contact-social {left: 50%;}
+  }
+   @media screen and (max-width: 400px) {
+     .contact-block_wrapper .contact-info div:first-child:after{display:none;}
+     .contact-block_wrapper .contact-info{grid-template-columns: repeat(1, 1fr);}
+     .contact-block_wrapper .contact-info .contact-social {left: 0%;}
+   }
+
+  
+  {%- endstyle -%}
+
+
+<div class="contact-section color-{{ section.settings.color_scheme }} gradient{% if section.settings.title == blank %} no-heading{% endif %} {{ section.settings.custom_class_name }} ">
+ <div class="{% if section.settings.page_full_width %} page-full-width {% else %} page-width {% endif %} {% if section.settings.page_full_width_spacing %} page-full-width_spacing {% endif %}section-{{ section.id }}-padding isolate">
+ <div class="row"> 
+  <div class="contact-section-wrapper">
+     {%- unless section.settings.title == blank -%}
+      <div class="title-wrapper-with-link title-wrapper--self-padded-mobile title-wrapper--no-top-margin content-align--{{ section.settings.column_alignment }}">
+         {%- if section.settings.sub_heading != blank -%}  
+         <h6 class="sub-heading">{{ section.settings.sub_heading | escape }}</h6>
+         {%- endif -%} 
+         {%- if section.settings.title != blank -%}  
+          <h2 class="title {{ section.settings.heading_size }}">
+            {{ section.settings.title | escape }}
+          </h2>
+          {%- endif -%} 
+          {%- if section.settings.description != blank -%}  
+          <p class="description">{{ section.settings.description }}</p>
+          {%- endif -%}   
+          {%- if section.settings.button_label != blank -%}
+            <a {% if section.settings.button_link == blank %} role="link" aria-disabled="true"{% else %} href="{{ section.settings.button_link }}"{% endif %} class="button{% if section.settings.button_style_secondary %} button--secondary{% else %} button--primary{% endif %}">{{ section.settings.button_label | escape }}</a>
+          {%- endif -%}
+          </div>
+    {%- endunless -%}
+      <div class="contact-block_wrapper">
+        <div class="contact-info list-unstyled">
+            {% if section.settings.contact_phone_no != blank %}
+                <div class="contact-phone">
+                 <h6 class="contact-heading">{{ section.settings.contact-heading_phone }}</h6>
+                 <a href="tel:{{ section.settings.contact_phone_no }}" class="link">   
+                  {{ section.settings.contact_phone_no }}  
+                </a>   
+                </div>
+             {% endif %}
+            {% if section.settings.contact_address != blank %}
+                <div class="contact-address"> 
+                  <h6 class="contact-heading">{{ section.settings.contact-heading_address }}</h6>
+                  <address>{{ section.settings.contact_address }}</address>
+                </div>
+            {% endif %}  
+             {% if section.settings.show_social_icons != blank %}
+                <div class="contact-social">
+                 <h6 class="contact-heading">{{ section.settings.contact-heading_social }}</h6>
+                   {%- if section.settings.show_social_icons -%}
+                <ul class="contact__list-social list-unstyled list-social" role="list">
+                   {% render 'social-icons' %}
+                </ul>
+                {%- endif -%}
+                </div>
+             {% endif %}
+        </div>       
+     </div>
+  </div>
+ </div>
+</div>
+</div>
+
+{% schema %}
+{
+  "name": "t:sections.contact-section.name",
+  "class": "section section-contact-section",
+  "tag": "section",
+  "settings": [
+    {
+      "type":"checkbox",
+      "id":"page_full_width",
+       "default": false,
+      "label": "t:sections.all.page_full_width.label"
+    },
+    {
+      "type":"checkbox",
+      "id":"page_full_width_spacing",
+       "default": false,
+      "label": "t:sections.all.page_full_width_spacing.label"
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "default": "Contact Section",
+      "label": "t:sections.all.title.label"
+    },
+    {
+      "type": "select",
+      "id": "heading_size",
+      "options": [
+        {
+          "value": "h2",
+          "label": "t:sections.all.heading_size.options__1.label"
+        },
+        {
+          "value": "h1",
+          "label": "t:sections.all.heading_size.options__2.label"
+        },
+        {
+          "value": "h0",
+          "label": "t:sections.all.heading_size.options__3.label"
+        }
+      ],
+      "default": "h1",
+      "label": "t:sections.all.heading_size.label"
+    },
+    {
+      "type": "text",
+      "id": "sub_heading",
+      "default": "Sub Heading", 
+      "label": "t:sections.all.sub_heading.label"
+    },
+     {
+      "type": "text",
+      "id": "description",
+      "default": "Use This Text To Share The Information Which You Like!.",    
+      "label": "t:sections.all.description.label"
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "default": "Button label",
+      "label": "t:sections.all.button_label.label"
+    },
+    {
+      "type": "url",
+      "id": "button_link",
+      "label": "t:sections.all.button_link.label"
+    },
+    {
+      "type": "checkbox",
+      "id": "button_style_secondary",
+      "default": false,
+      "label": "t:sections.all.button_style_secondary.label"
+      },
+    {
+      "type": "select",
+      "id": "column_alignment",
+      "options": [
+        {
+          "value": "left",
+          "label": "t:sections.contact-section.settings.column_alignment.options__1.label"
+        },
+        {
+          "value": "center",
+          "label": "t:sections.contact-section.settings.column_alignment.options__2.label"
+        }
+      ],
+      "default": "center",
+      "label": "t:sections.contact-section.settings.column_alignment.label"
+    },
+     {
+      "type": "header",
+      "content": "t:sections.contact-section.settings.contact_section_settings.content"
+    },
+    {
+      "type": "text",
+      "id": "contact-heading_phone",
+      "default":"Contact Us",
+      "label": "t:sections.contact-section.settings.contact-heading_phone.label"
+    },
+    {
+      "type": "text",
+      "id": "contact_phone_no",
+      "default":"+1-000-123-456789",
+      "label": "t:sections.contact-section.settings.contact_phone_no.label"
+    },
+    {
+      "type": "text",
+      "id": "contact-heading_address",
+      "default":"We Are Open",
+      "label": "t:sections.contact-section.settings.contact-heading_address.label"
+    },
+    {
+      "type": "text",
+      "id": "contact_address",
+      "default":"Mon to Sat - 08:00 - 21:00",
+      "label": "t:sections.contact-section.settings.contact_address.label"
+    },
+    {
+      "type": "text",
+      "id": "contact-heading_social",
+      "default":"Follow Us On",
+      "label": "t:sections.contact-section.settings.contact-heading_social.label"
+    },
+    {
+      "type":"checkbox",
+      "id":"show_social_icons",
+      "default":true,  
+      "label": "t:sections.contact-section.settings.show_social_icons.label"
+    },
+     {
+      "type": "header",
+      "content": "t:sections.all.padding.section_padding_heading"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "t:sections.all.padding.padding_top",
+      "default": 36
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "t:sections.all.padding.padding_bottom",
+      "default": 36
+    },
+    {
+    "type": "header",
+    "content": "t:sections.all.custom_class_heading.content"
+    },
+    {
+    "type": "text",
+    "id": "custom_class_name",
+    "label": "t:sections.all.custom_class_name.label"
+    }
+  ],
+    "presets": [
+    {
+      "name": "t:sections.contact-section.presets.name"
+    }
+  ]
+}
+
+{% endschema %} 

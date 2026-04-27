@@ -1,0 +1,255 @@
+.featured-collection-list.banner--content-align-center .deal-banner__box { text-align: center;}
+  .featured-collection-list.banner--content-align-right .deal-banner__box { text-align: right;}
+  .featured-collection-list.banner--content-align-left .deal-banner__box { text-align: left; }
+.featured-collection-list .deal-banner__box{ padding: 14rem 4rem;background: transparent;}
+.featured-collection-list .deal-banner__heading{margin:0;margin-bottom: 1rem;}
+.featured-collection-list .deal-banner__content > * {
+    color: rgba(var(--color-foreground),1);
+}
+.featured-collection-list .featured-collection-list-section .card {
+    flex-direction: row;
+    background: inherit;
+    align-items: center;
+    border-bottom: var(--inputs-border-width) solid rgb(var(--color-border),var(--inputs-border-opacity));
+    margin-bottom: 30px;
+    padding-bottom: 30px;
+}
+.featured-collection-list .featured-collection-list-section .product-grid{
+  width: 100%;
+  margin: auto;
+}
+.deal-banner-media-section{display: flex; align-items: center;justify-content: center;}
+.featured-collection-list .title-wrapper--no-top-margin{
+  padding: 0;
+}
+.featured-collection-list .featured-collection-list-section .product-grid .swiper-slide .card-wrapper{
+  width: 70%; margin-right: auto;
+}
+.featured-collection-list .featured-collection-list-section .product-grid .swiper-slide .card-wrapper .card .card__inner {    
+    width: 33%;
+    overflow: hidden;
+}
+.featured-collection-list .featured-collection-list-section .product-grid .swiper-slide .card-wrapper .card .card__content {
+    display: flex;
+    padding: 0 3rem;
+    flex-direction: column-reverse;
+    align-items: flex-start;
+}
+.featured-collection-list .featured-collection-list-section .product-grid .swiper-slide .card-wrapper .card__inner{
+  margin: auto;
+}
+.featured-collection-list .featured-collection-list-section .product-grid .swiper-slide .card-wrapper.placeholder--card .card .card__content .card__information{
+  text-align: center;
+}
+.featured-collection-list .featured-collection-list-section .product-grid .swiper-slide .card-wrapper .card .card__content .card__information{
+  text-align: left;
+}
+.featured-collection-list .featured-collection-list-section .product-grid .swiper-slide .card-wrapper .card .quick-add__submit.button{
+  display: none;
+}
+.featured-collection-list .featured-collection-list-section{
+  padding: 0;
+}
+.featured-collection-list .product-badge-new,
+.featured-collection-list .product-deal-count{display: none;}
+.featured-collection-list .featured-collection-list-section .card .card__content .product-badge{display: none;}
+/* .featured-collection-list .featured-collection-list-section .card{
+    width: 55%; 
+    margin-right: auto;
+} */
+.featured-collection-list .deal-banner__content {margin-bottom: 3rem;position: relative;z-index:1;}
+
+.featured-collection-list .featured-collection-list-section .card .card__information p.rating-count{
+    display: none;
+}
+.featured-collection-list .featured-collection-list-section .card .card__information .price{
+  margin: 0;
+}
+.deals-counter a.button{
+  margin-top: 1.8rem;
+}
+.featured-collection-list .swiper-button-next svg, .featured-collection-list .swiper-button-prev svg {
+    width: 15px;
+}
+/* image  */
+div#featured-collection-list .image-container img{
+    max-height: 300px;
+    object-fit: contain;object-position: right;
+}
+.featured-collection-list .placeholder--card .card--standard>.card__content .card__information{
+  background: rgba(var(--color-background),0);
+}
+.featured-collection-list .swiper-slide.placeholder,
+.featured-collection-list .grid__item.placeholder{
+    background: rgba(var(--color-background),0)!important;
+    margin-bottom: 1rem;
+}
+.featured-collection-list .featured-banner-section .slideshow__media{height: 100%;}
+.featured-collection-list .deal-banner__box{
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+  width: 100%;
+}
+.featured-collection-list .featured-banner-section{position: relative; width: 100%;}
+#featured-collection-list.deal-banner .slideshow__media img.desktop-slider{display: block;height: 100%;}
+#featured-collection-list.deal-banner .slideshow__media:after{display: none;}
+.featured-collection-list .deal-section {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    grid-gap: 30px;
+}
+.featured-collection-list .deal-section.deal-banner-content-section{
+  grid-template-columns: 1fr;
+}
+/* .featured-collection-list .deal-banner-media-section , .featured-collection-list .deal-banner-media-section img{width: 100%;height: 100%;} */
+.featured-collection-list .deal-section.deal-banner-content-section .deal-banner-media-section{
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+.featured-collection-list .deal-section.deal-banner-content-section .deal-banner-media-section img{
+    width: 100%;
+    height: 100%;
+}
+.featured-collection-list .deal-banner-content-section .deal-banner__box{
+  position: unset; transform: unset;
+}
+.featured-collection-list .deal-section .featured-banner-section, .featured-collection-list .deal-section .featured-collection-list-section{
+  width: 100%; height: 100%;
+}
+.featured-collection-list .deal-section .featured-collection-list-section{position: relative;}
+.featured-collection-list .featured-collection-list-section .product-grid .grid__item {
+    width: 100%;
+    max-width: 45%;
+    margin-bottom: 3rem;
+}
+.featured-collection-list .swiper-button-next:after, .featured-collection-list .swiper-button-prev:after{display: none;}
+.featured-collection-list .swiper-button-next, .featured-collection-list .swiper-button-prev{
+  opacity: 1;border: var(--inputs-border-width) solid rgb(var(--color-border),var(--inputs-border-opacity));background: transparent; position: relative;
+}
+.featured-collection-list .swiper-button-prev.swiper-button-disabled,
+.featured-collection-list .swiper-button-next.swiper-button-disabled {
+    cursor: not-allowed;
+    opacity: .5;
+}
+
+.featured-collection-list .swiper-button-next {
+    top: 0;
+    right: 0;
+    transform: rotate(-90deg);
+}
+.featured-collection-list .swiper-button-prev {
+    top: 0;
+    right: 0;
+    left: auto;
+    transform: rotate(-90deg);
+}
+
+.featured-collection-navigation{
+    display: flex;
+    position: absolute;
+    top: 5px;
+    right: 30%;
+    column-gap: 20px;
+}
+
+@media screen and (min-width: 1200px) and (max-width: 1540px){
+  .featured-collection-list .featured-collection-list-section .product-grid .swiper-slide .card-wrapper{
+    width: 80%;
+  }
+  .featured-collection-list .featured-collection-list-section .product-grid .swiper-slide .card-wrapper .card .card__inner{
+    width: 35%;
+  }
+}
+@media screen and (min-width: 750px) and (max-width: 1199px){
+.featured-collection-list .featured-collection-list-section .product-grid{
+  width: 85%;
+}
+  .featured-collection-list .featured-collection-list-section .product-grid .swiper-slide .card-wrapper{
+    width: 100%;
+  }
+  .featured-collection-list .featured-collection-list-section .product-grid .swiper-slide .card-wrapper .card .card__inner{
+    width: 50%;
+  }
+  .featured-collection-list :is(.deal-clock) ul li{
+    padding: .5rem 1rem;
+  }
+  .featured-collection-list .deal-banner__box{
+    padding: 10rem 2rem;
+  }
+  .featured-collection-list .deal-section{
+    grid-gap: 0; 
+  }
+}
+@media only screen and (min-width: 992px){
+  .featured-collection-list :is(.deal-clock) ul li{padding: 0.5rem 2rem;}
+}
+@media only screen and (min-width: 1200px) and (max-width: 1439px) {
+  .featured-collection-list :is(.deal-clock) ul li{padding: 0.5rem 1rem;}
+}
+
+@media only screen and (min-width: 1200px) {
+  .featured-collection-list.banner--content-align-left :is(.deal-clock) ul { justify-content: left }
+  .featured-collection-list.banner--content-align-right :is(.deal-clock) ul { justify-content: right}
+}
+
+@media screen and (max-width: 1540px){
+  .featured-collection-list .featured-collection-list-section{
+    padding: 0;
+  }
+}
+@media screen and (min-width: 1541px){
+  .featured-collection-list .featured-collection-list-section .product-grid .grid__item{
+    width: 100%;
+    max-width: 60%;
+    margin-bottom: 3rem;
+  }
+}
+@media screen and (min-width: 1200px) and (max-width: 1540px){
+  .featured-collection-list .featured-collection-list-section .product-grid .grid__item.placeholder {
+    width: 100%;
+    max-width: 85%;
+    margin-bottom: 3rem;
+  }
+}
+@media only screen and (max-width: 1199px) {
+  .featured-collection-list .deal-banner__box{    flex-direction: column;    row-gap: 3rem;}
+  div#featured-collection-list .image-container img {max-width: 30vw;}
+  
+  .featured-collection-list .row{align-items: center;}
+  .featured-collection-list .featured-collection-list-section .product-grid .grid__item.placeholder {
+    width: 100%;
+    max-width: 100%;
+    margin-bottom: 3rem;
+}
+}
+@media screen and (min-width: 991px) and (max-width: 1199px){
+  .featured-collection-list :is(.deal-clock) .h0 {
+    font-size: calc(var(--h1-font-size) * .8);
+  }
+}
+@media only screen and (max-width: 749px) {
+  .featured-collection-list .featured-collection-list-section .product-grid .swiper-slide .card-wrapper{width: 100%;}
+  .featured-collection-list .featured-collection-list-section .product-grid .swiper-slide .card-wrapper .card .card__inner{width: 50%;margin: 0;}
+  .featured-collection-list .featured-collection-list-section .product-grid .swiper-slide .card-wrapper .card .card__content{padding: 0 1.5rem;}
+  .featured-collection-list .featured-collection-list-section .product-grid{width: 85%;}
+  .featured-collection-list .row.deal-section{
+    flex-direction: column;
+  }
+  .featured-collection-list .title-wrapper--no-top-margin{
+  padding: 0 2rem;
+  }
+}
+
+@media screen and (max-width: 575px) {
+  .featured-collection-list .deal-banner__box{ padding: 4rem 2rem;}
+
+  
+}
+@media screen and (max-width: 420px) {
+  .featured-collection-list .deal-banner__box { padding: 3rem 1rem;}
+  .featured-collection-list .featured-collection-list-section .card{align-items: center;}
+}

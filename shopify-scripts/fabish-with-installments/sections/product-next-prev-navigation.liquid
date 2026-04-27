@@ -1,0 +1,46 @@
+{% if section.settings.prev_next_products %}
+  <div class="prev-next-product-navigation {% if section.settings.page_full_width %} page-full-width {% else %} page-width {% endif %} {% if collection.previous_product and collection.next_product %}two-navigation{% endif %}">
+    {% if collection.previous_product %}
+      <a class="prev-product" href="{{collection.previous_product.url}}" title="Previous product">
+        <span>
+          <svg width="15" height="20" viewBox="0 0 15 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12.9215 28.7055L1.39911 16.084C0.866962 15.5013 0.866962 14.5561 1.39911 13.9734L12.9215 1.35547" stroke="black" stroke-width="2"/>
+          </svg>
+          Previous
+        </span>
+        {{ collection.previous_product.featured_media | image_url: width: 245 | image_tag: loading: 'lazy' }}
+      </a>
+    {% endif %}
+    {% if collection.next_product %}
+      <a class="next-product" href="{{ collection.next_product.url }}" title="Next product">
+        <span>
+          Next
+          <svg width="15" height="20" viewBox="0 0 15 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M1.35975 1.00547L12.8821 13.6269C13.4143 14.2097 13.4143 15.1548 12.8821 15.7376L1.35975 28.3555" stroke="black" stroke-width="2"/>
+          </svg>
+        </span>
+        {{ collection.next_product.featured_media | image_url: width: 245 | image_tag: loading: 'lazy' }}
+      </a>
+    {% endif %}
+  </div>
+{% endif %}
+
+{% schema %}
+{
+  "name": "Product navigation",
+  "settings": [
+    {
+      "type":"checkbox",
+      "id":"page_full_width",
+       "default": false,
+      "label": "t:sections.all.page_full_width.label"
+    },
+    {
+    "type": "checkbox",
+    "id": "prev_next_products",
+    "label": "t:sections.main-product.settings.prev_next_products.label",
+    "default": false
+    }
+  ]
+}
+{% endschema %}

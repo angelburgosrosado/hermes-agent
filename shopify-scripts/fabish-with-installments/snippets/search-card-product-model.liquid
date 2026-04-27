@@ -1,0 +1,99 @@
+
+ {% unless settings.search_collection == blank %}
+            <h3 class="recently_purchased">{{ 'general.search.recently_purchased_title' | t }}</h3>
+          {%- liquid
+         if settings.swiper_enable
+        assign enable_slider = true  
+        endif
+          %}
+
+
+    <{% if enable_slider %}featured-swiper-slider{% else %}div{% endif %} class="{% if settings.full_width %} slider-component-full-width{% endif %}{% if show_mobile_slider == false %} page-width{% endif %}{% if show_desktop_slider == false and settings.full_width == false %} page-width-desktop{% endif %}{% if show_desktop_slider %} slider-component-desktop{% endif %}">
+      <div data-slider-options='{"loop": "{%- if settings.centered_slide -%}1{%- else -%}2{%- endif -%}","desktop": "{{ settings.desktop_column }}", "laptop": "{{ settings.laptop_column }}", "tablet": "{{ settings.tablet_column }}","mobile": "{{ settings.mobile_column }}","auto_play": "{{ settings.auto_play }}"}'>
+      <div class="swiper" data-swiper-slider>
+      <div id="Slider-{{ section.id }}" class="product-grid contains-card {% if enable_slider %} swiper-wrapper{% else %} grid grid--{{ settings.columns_desktop }}-col-desktop{% if settings.collection == blank %} grid--2-col-tablet-down{% else %} grid--{{ settings.columns_mobile }}-col-tablet-down{% endif %}{% endif %}" role="list" aria-label="{{ 'sections.featured_collection.slider' | t }}">
+        {% assign collection = collections[settings.search_collection] %}
+        {% for product in collection.products limit: settings.products_to_show -%}
+          <div id="Slide-{{ section.id }}-{{ forloop.index }}" class="{% if enable_slider %} swiper-slide{% else %} grid__item{% endif %} card_style-{{ settings.card_style }}">
+          {%  case settings.card_style %}
+          {%  when 'standard' %}  
+            {% render 'card-product',
+              card_product: product,
+              media_aspect_ratio: settings.image_ratio,
+              show_secondary_image: settings.show_secondary_image,
+              show_vendor: settings.show_vendor,
+              show_rating: settings.show_rating,
+              show_quick_add: settings.enable_quickadd,
+              show_quick_view: settings.enable_quickview,
+              show_new_tag: settings.show_new_tag,
+              section_id: section.id
+            %}
+        {%  when 'button_width_icons' %}  
+             {% render 'card-product-2',
+              card_product: product,
+              media_aspect_ratio: settings.image_ratio,
+              show_secondary_image: settings.show_secondary_image,
+              show_vendor: settings.show_vendor,
+              show_rating: settings.show_rating,
+              show_quick_add: settings.enable_quickadd,
+              show_quick_view: settings.enable_quickview,
+              show_new_tag: settings.show_new_tag,
+              section_id: section.id
+            %}
+        {%  when 'card_with_icons' %} 
+             {% render 'card-product-3',
+              card_product: product,
+              media_aspect_ratio: settings.image_ratio,
+              show_secondary_image: settings.show_secondary_image,
+              show_vendor: settings.show_vendor,
+              show_rating: settings.show_rating,
+              show_quick_add: settings.enable_quickadd,
+              show_quick_view: settings.enable_quickview,
+              show_new_tag: settings.show_new_tag,
+              section_id: section.id
+            %}
+        {%  when 'card_with_buttons' %}  
+             {% render 'card-product-4',
+              card_product: product,
+              media_aspect_ratio: settings.image_ratio,
+              show_secondary_image: settings.show_secondary_image,
+              show_vendor: settings.show_vendor,
+              show_rating: settings.show_rating,
+              show_quick_add: settings.enable_quickadd,
+              show_quick_view: settings.enable_quickview,
+              show_new_tag: settings.show_new_tag,
+              section_id: section.id
+            %}
+        {%  when 'card_with_overlay' %}  
+             {% render 'card-product-5',
+              card_product: product,
+              media_aspect_ratio: settings.image_ratio,
+              show_secondary_image: settings.show_secondary_image,
+              show_vendor: settings.show_vendor,
+              show_rating: settings.show_rating,
+              show_quick_add: settings.enable_quickadd,
+              show_quick_view: settings.enable_quickview,
+              show_new_tag: settings.show_new_tag,
+              section_id: section.id
+            %}
+        {%  endcase %}
+          </div>
+        {%- else -%}
+          {%- for i in (1..4) -%}
+            <div class="grid__item">
+              {% render 'card-product', show_vendor: settings.show_vendor %}
+            </div>
+          {%- endfor -%}
+        {%- endfor -%}
+      </div>
+        {% if settings.swiper_navigation %}
+        <div class="swiper-button-next"><span></span></div>
+        <div class="swiper-button-prev"><span></span></div>
+        {% endif %}    
+        {% if settings.swiper_pagination %}
+        <div class="swiper-pagination"></div>
+        {% endif %}
+    </div>
+      </div>
+    </{%- if enable_slider %}featured-swiper-slider{% else %}div{% endif -%}>   
+      {% endunless %} 

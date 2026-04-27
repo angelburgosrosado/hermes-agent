@@ -1,0 +1,96 @@
+{{ 'page-compare.css' | asset_url | stylesheet_tag }}
+
+{%- style -%}
+    .section-copareTemplate-padding {
+    padding-top: {{ 100 | times: 0.50 | round: 0 }}px;
+    padding-bottom: {{ 45 | times: 0.50 | round: 0 }}px;
+  }
+   @media screen and (min-width: 576px) and (max-width: 749px){
+   .section-copareTemplate-padding {
+    padding-top: {{100 | times: 0.75 | round: 0 }}px;
+    padding-bottom: {{ 45 | times: 0.75 | round: 0 }}px;
+  }
+   }
+  @media screen and (min-width: 750px) {
+    .section-copareTemplate-padding {
+      padding-top: 100px;
+      padding-bottom: 45px;
+    }
+  }
+{%- endstyle -%}
+
+
+<div class="page-width wishlist section-copareTemplate-padding isolate compare compare-wrapper">
+    <div class="row">
+  <dtx-compare-grid grid_type="compareList">
+    <div class="dtx-grid-empty center">
+       <h2>{{ 'products.compare.no_records' | t }}</h2>   
+      <a href="{{ routes.all_products_collection_url }}" class=" button button--primary">
+        {{ 'general.continue_shopping' | t }}
+      </a>
+    </div>    
+    <table class="dtx-table" id="compareSwiper">
+      <tbody class="slick-wrapper">
+      <th class="product-title"> Product </th>
+         <!-- <th>Product Title</th>  -->
+        <!-- <th>Price</th>        -->
+        <th>Availability</th>
+        <!-- <th>Vendor</th> -->
+        <th>Type</th>
+        <th>Sku</th>
+        <th>Add to Cart</th>
+        <!-- <th>Remove</th> -->
+        <!-- <th>Washing Instructions</th> -->
+        <tr id="row_{item.product_handle}" class="grid_template" style="display: none;">
+          <td class="product-thumbnail">
+            <a href="{item.product_url}" class="product-thumbnail-img">
+              <img loading="lazy" src="{item.product_image}" alt="{item.product_title}" width="" height="">
+            </a>
+              <p class="product-vendor-cart">  {item.product_vendor}</p>
+              <a href="{item.product_url}" class="product-name">{item.product_title}</a>
+              <p class="product-price-cart">  {item.money_price}</p>
+             <dtx-remove-compare-item grid_type="compareList">
+              <a href="javascript:void(0);" data-product_handle="{item.product_handle}" class="remove-item product-cart">
+               {% render 'icon-close' %}
+              </a>
+            </dtx-remove-compare-item>
+          </td>
+          <!-- <td class="product-name">          
+          </td> -->
+          <!-- <td class="product-price-cart">
+            {item.money_price}
+          </td> -->
+          <td class="product-availability-cart">
+            {item.available}
+          </td>
+           <!-- <td class="product-vendor-cart">
+            {item.product_vendor}
+          </td> -->
+           <td class="product-type-cart">
+            {item.product_type}
+          </td>
+           <td class="product-sku-cart">
+            {item.product_sku}
+          </td>
+          <!-- <td class="product-description-cart">
+            {item.product_description}
+          </td>           -->
+          <td class="product-wishlist-cart">
+             <a href="{item.product_url}" data-product-variant-id="{item.variant_id}" class="dt-sc-btn button product-cart">
+              Select Options
+            </a> 
+             
+          </td>
+          <!-- <td>
+            <dtx-remove-compare-item grid_type="compareList">
+              <a href="javascript:void(0);" data-product_handle="{item.product_handle}" class="remove-item product-cart">
+               <span> Remove </span>{% render 'icon-remove' %}
+              </a>
+            </dtx-remove-compare-item>  
+          </td> -->
+        </tr>        
+      </tbody>       
+    </table>
+  </dtx-compare-grid>
+</div>
+</div>

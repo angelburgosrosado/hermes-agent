@@ -1,0 +1,99 @@
+.video-section__media {
+  position: relative;
+  padding-bottom: 56.25%;
+  z-index: -1;
+}
+ .video-banner-wrapper .video-section__media {
+    z-index: 1;
+} 
+.content-style-overlay .video-section__content {
+    text-align: center;
+    position: absolute;
+    z-index: 1;
+    left: 60px;
+    right: 60px;
+    top: 15%;
+   max-width:58rem; 
+}
+.content-style-overlay .video-section__content.active{opacity:0.1;transition: all .3s linear;}
+@media only screen and (min-width: 750px) {
+.content-style-overlay .video-section__content{ padding-left:2rem;} }
+
+.video-section__media.deferred-media {
+  box-shadow: var(--media-shadow-horizontal-offset) var(--media-shadow-vertical-offset) var(--media-shadow-blur-radius) rgba(var(--color-shadow), var(--media-shadow-opacity));
+}
+
+.video-section__media.deferred-media:after {
+  content: none;
+}
+
+.video-section__poster.deferred-media__poster:focus {
+  outline-offset: 0.3rem;
+}
+
+.video-section__media iframe {
+  background-color: rgba(var(--color-foreground), 0.03);
+  border: 0;
+}
+
+.video-section__poster,
+.video-section__media iframe {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+}
+
+.video-banner-wrapper video{ width:100%; }
+.video-banner-wrapper .video_icon{top: 50%;left: 50%;transform: translate(-50%,-50%) scale(1); position: absolute;}
+
+@media only screen and (max-width: 1280px) {
+.video-banner-wrapper .video_icon { left: 80%; }
+}
+
+@media only screen and (max-width: 1200px) {
+.video-banner-wrapper .video_icon { left: 50%; }
+}
+
+@media only screen and (min-width: 768px) {
+  .video-banner-wrapper .video_icon .gridPause .pause-button{ width: 110px; height: 110px; }
+    .video-banner-wrapper .video_icon .gridPlay .play-button{ width: 110px; height: 110px; } 
+}
+@media only screen and (max-width: 767px) {
+  .video-banner-wrapper .video_icon .gridPause .pause-button{ width: 55px; height: 55px;}
+    .video-banner-wrapper .video_icon .gridPlay .play-button{ width: 55px; height: 55px; } 
+}
+
+.video-banner-wrapper .video_icon .gridPlay .play-button{ display: flex; border-radius: 50%; align-items: center; position:relative; cursor:pointer; justify-content: center; }
+/* .video-banner-wrapper .video_icon .gridPlay .play-button span{ color:rgba(var(--color-foreground), 1); } */
+.video-banner-wrapper .video_icon .gridPlay .play-button:before{  content: ""; filter: blur(3px); position: absolute; height: 100%; border-radius: 50%; width: 100%;  /* backdrop-filter: brightness(1); */  z-index: 1;}
+.video-banner-wrapper .video_icon .gridPause .pause-button{ display: flex; border-radius: 50%;cursor:pointer;align-items: center; position:relative; justify-content: center; }
+/* .video-banner-wrapper .video_icon .gridPause .pause-button span{ color:rgba(var(--color-foreground), 1); } */
+.video-banner-wrapper .video_icon .gridPause .pause-button:before{ content: ""; filter: blur(3px); position: absolute; height: 100%; border-radius: 50%; width: 100%; /* backdrop-filter: brightness(1); */  z-index: 1;}
+.video-banner-wrapper .video_icon .gridPause .pause-button span { z-index:1;}
+.video-banner-wrapper .video_icon .gridPlay .play-button span,.video-banner-wrapper .video_icon .gridPause .pause-button span { z-index:1; width: 100%; height: 100%;display: flex; align-items: center; justify-content: center;}
+.video-banner-wrapper .video_icon .gridPlay .play-button span>svg,.video-banner-wrapper .video_icon .gridPause .pause-button span>svg { width:2rem; height: 2rem; transition: var(--duration-default); }
+
+.video-banner-wrapper .video_icon .gridPlay .play-button:hover span>svg,
+.video-banner-wrapper .video_icon .gridPause .pause-button:hover span>svg { color: var(--gradient-base-background-3);  }
+
+
+ 
+@media only screen and (max-width:1201px) {
+  .title-wrapper--no-top-margin{ margin-bottom:15px;}
+.content-style-overlay .video-section__content{position:relative;  top: 0;left:0;right:0; display:flex; justify-content:center;}
+  .content-style-overlay .video-section__content{  max-width: 80rem; margin: auto;}
+   .content-style-overlay .video-section__content .title-wrapper-with-link{
+    text-align: center;
+    align-items: center;
+}
+}
+
+/*custom*/
+@media only screen and (min-width:1440px) {
+  .content-style-overlay .video-section__content .title-wrapper-with-link .title:only-child {
+    margin-top: 8rem;
+    margin-left: 4rem;
+    max-width: 65rem;
+  }
+}
+.content-style-overlay .video-section__content{ pointer-events: none;}

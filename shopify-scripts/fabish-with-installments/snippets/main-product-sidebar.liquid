@@ -1,0 +1,185 @@
+<div class="optional-sidebar {% if show_sticky %}product__info-container--sticky{% endif %}">
+  <span class="close-sidebar">{%  render 'icon-close' %}</span>
+{% if section.settings.show_menu %}  
+{% assign sidebar_menu = section.settings.linklist %}
+{% if linklists[sidebar_menu].links.size > 0 %}
+<div class="filter-panel-menu">
+  {%- if section.settings.menu_title != '' -%}
+  <h5 class="sidebar_title">{{ section.settings.menu_title }}</h5>
+  {%- endif -%}
+  <div class="filter-panel" id="accordian">
+    <ul>
+      {% for link in linklists[sidebar_menu].links %}
+      {% assign link_handle = link.title | handle %}
+      {% if linklists[link_handle] and linklists[link_handle].links.size > 0 %}
+      <li>
+        <a href="{{ link.url }}">{{ link.title }}</a>
+        <ul>
+          {% for child in linklists[link_handle].links %}
+          <li {% if child.active %}class="active"{% endif %}><a href="{{ child.url }}">{{ child.title }}</a></li>
+          {% endfor %}
+        </ul>
+      </li>
+      {% else %}
+      <li class=" {% if link.active %}active{% endif %}"><a href="{{ link.url }}">{{ link.title }}</a></li>
+      {% endif %}
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+{% endif %}
+{% endif %} 
+{% if section.settings.show_collection %}  
+<div class="widget product-sidebar-type-collection">
+  {% if collections[section.settings.collection].products.size > 0 %} 
+  {% if section.settings.collection_title != blank %}
+  <h5 class="sidebar_title">{{ section.settings.collection_title }}</h5>  
+  {% endif %}
+  {% endif %}
+  <div class="dT_VProdWrapperOther">  
+    <ul class="product-list-style">                 
+      {% for product in collections[section.settings.collection].products limit: section.settings.collection_limit %}         
+      <li class="item">
+       {% render 'card-product',
+                    card_product: product,
+                    media_aspect_ratio: section.settings.image_ratio,
+                    show_secondary_image: section.settings.show_secondary_image,
+                    show_vendor: section.settings.show_vendor,
+                    show_rating: section.settings.show_rating,
+                    lazy_load: lazy_load,
+                    show_quick_add: section.settings.enable_quick_add,
+                    section_id: section.id
+
+                  %}
+      </li>
+      {%- endfor -%}
+    </ul>                   
+  </div>
+</div> 
+{% endif %}
+  {% if section.settings.heading_1 != blank or section.settings.heading_1_text != blank or section.settings.heading_1_icon != blank %}  
+<div class="widget product-sidebar-iconwithtext">
+  {% if section.settings.iconwithtext != blank %}   
+  <h5 class="sidebar_title">{{ section.settings.iconwithtext }}</h5>    
+  {% endif %}  
+    <ul class="iconwithtext">                       
+   {% if section.settings.heading_1 != blank or section.settings.heading_1_text != blank or section.settings.heading_1_icon != blank %}  
+<li class="item">
+  {% if section.settings.heading_1_icon != blank %}
+  <span>{{ section.settings.heading_1_icon | image_url: width: 50 | image_tag }}</span>
+  {% endif %}
+     <div class="item__content">
+  {% if section.settings.heading_1 != blank %}
+  <h6>{{ section.settings.heading_1 }}</h6>
+  {%  endif %}
+  {% if section.settings.heading_1_text != blank %}
+  <p>{{  section.settings.heading_1_text }}</p>
+  {%  endif %}
+     </div>
+</li>    
+{% endif %}    
+      {% if section.settings.heading_2 != blank or section.settings.heading_2_text != blank or section.settings.heading_2_icon != blank %}  
+<li class="item">
+  {% if section.settings.heading_2_icon != blank %}
+  <span>{{ section.settings.heading_2_icon | image_url: width: 50 | image_tag }}</span>
+  {% endif %}
+        <div class="item__content">
+  {% if section.settings.heading_2 != blank %}
+  <h6>{{ section.settings.heading_2 }}</h6>
+  {%  endif %}
+  {% if section.settings.heading_2_text != blank %}
+  <p>{{  section.settings.heading_2_text }}</p>
+  {%  endif %}
+        </div>
+</li>    
+{% endif %}    
+      {% if section.settings.heading_3 != blank or section.settings.heading_3_text != blank or section.settings.heading_3_icon != blank %}  
+      <li class="item">
+        {% if section.settings.heading_3_icon != blank %}
+        <span>{{ section.settings.heading_3_icon | image_url: width: 50 | image_tag }}</span>
+        {% endif %}
+        <div class="item__content">
+        {% if section.settings.heading_3 != blank %}
+        <h6>{{ section.settings.heading_3 }}</h6>
+        {%  endif %}
+        {% if section.settings.heading_3_text != blank %}
+        <p>{{  section.settings.heading_3_text }}</p>
+        {%  endif %}
+        </div>
+      </li>    
+      {% endif %}  
+    </ul>  
+</div> 
+{% endif %}
+{% if section.settings.html != blank %}    
+    <div class="rte">{{ section.settings.html }}</div>
+  {% endif %}
+{% if section.settings.show_image %}  
+{% if section.settings.sidebar_image != blank %}
+<div class="widget product-sidebar-type-{{block.type}}">
+  {% if section.settings.sidebar_title != blank %}
+  <h5 class="sidebar_title"> {{section.settings.sidebar_title}}</h5>
+  {% endif %}
+  <a href="{{section.settings.sidebar_link}}">    
+    <img srcset="{%- if section.settings.sidebar_image.width >= 375 -%}{{ section.settings.sidebar_image | img_url: '375x' }} 375w,{%- endif -%}
+                 {%- if section.settings.sidebar_image.width >= 750 -%}{{ section.settings.sidebar_image | img_url: '750x' }} 750w,{%- endif -%}
+                 {%- if section.settings.sidebar_image.width >= 1100 -%}{{ section.settings.sidebar_image | img_url: '1100x' }} 1100w,{%- endif -%}
+                 {%- if section.settings.sidebar_image.width >= 1500 -%}{{ section.settings.sidebar_image | img_url: '1500x' }} 1500w,{%- endif -%}
+                 {%- if section.settings.sidebar_image.width >= 1780 -%}{{ section.settings.sidebar_image | img_url: '1780x' }} 1780w,{%- endif -%}
+                 {%- if section.settings.sidebar_image.width >= 2000 -%}{{ section.settings.sidebar_image | img_url: '2000x' }} 2000w,{%- endif -%}
+                 {%- if section.settings.sidebar_image.width >= 2800 -%}{{ section.settings.sidebar_image | img_url: '2800x' }} 2800w{%- endif -%}"
+         sizes="{% if section.settings.sidebar_image_2 != blank and section.settings.stack_sidebar_images_on_mobile %}(min-width: 750px) 50vw, 100vw{% elsif section.settings.sidebar_image_2 != blank %}50vw{% else %}100vw{% endif %}"
+         src="{{ section.settings.sidebar_image | img_url: '750x' }}"
+         loading="lazy"
+         alt="{{ section.settings.sidebar_image.alt | escape }}"
+         width="{{ section.settings.sidebar_image.width }}"
+         height="{{ section.settings.sidebar_image.width | divided_by: section.settings.sidebar_image.aspect_ratio }}"
+         {% if section.settings.sidebar_image_2 != blank %}class="banner__media-sidebar_image-half"{% endif %}
+         >
+
+  </a>  
+
+  {% if section.settings.sidebar_link != blank  and  section.settings.sidebar_button != blank %}
+  <a href="{{section.settings.sidebar_link}}" class="button">      
+    {{section.settings.sidebar_button}}            
+  </a>    
+  {% endif %}    
+</div>  
+{% endif %}
+{% endif %}
+
+
+{% if section.settings.show_carousel %}  
+<div class="widget product-sidebar-type-carousel">  
+  {% if section.settings.carousel_title != blank %}
+  <h5 class="sidebar_title">{{ section.settings.carousel_title }}</h5>   
+  {% endif %}   
+  <div class="swiper-container" id="swiper-sidebar-carousel">        
+    <ul class="swiper-wrapper" data-id="{{ section.id }}">                 
+      {% for block in section.blocks %}
+       {%  if block.type == 'product' %} 
+      {%  assign product = block.settings.product %}
+      <li class="swiper-slide">
+        {% render 'card-product',
+                    card_product: product,
+                    media_aspect_ratio: section.settings.image_ratio,
+                    show_secondary_image: section.settings.show_secondary_image,
+                    show_vendor: section.settings.show_vendor,
+                    show_rating: section.settings.show_rating,
+                    lazy_load: lazy_load,
+                    show_quick_add: section.settings.enable_quick_add,
+                    section_id: section.id
+               
+                  %}
+      </li>
+         {% endif %}
+      {%- endfor -%}           
+    </ul>               
+    <div class="swiper-sidebar-arrows swiper-arrows">
+      <div id="swiper-sidebar-next" class="swiper-button-next dt-sc-btn"><span></span></div>
+      <div id="swiper-sidebar-prev" class="swiper-button-prev dt-sc-btn"><span></span></div>
+    </div>                          
+  </div>  
+</div>
+{% endif %}
+</div>

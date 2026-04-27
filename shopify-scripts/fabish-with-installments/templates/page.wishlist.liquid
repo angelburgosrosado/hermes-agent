@@ -1,0 +1,81 @@
+{{ 'page-wishlist.css' | asset_url | stylesheet_tag }}
+<!-- CSS -->
+
+{%- style -%}
+    .section-wishlistTemplate-padding {
+    padding-top: {{ 100 | times: 0.50 | round: 0 }}px;
+    padding-bottom: {{ 45 | times: 0.50 | round: 0 }}px;
+  }
+   @media screen and (min-width: 576px) and (max-width: 749px){
+   .section-wishlistTemplate-padding {
+    padding-top: {{100 | times: 0.75 | round: 0 }}px;
+    padding-bottom: {{ 45 | times: 0.75 | round: 0 }}px;
+  }
+   }
+  @media screen and (min-width: 750px) {
+    .section-wishlistTemplate-padding {
+      padding-top: 100px;
+      padding-bottom: 45px;
+    }
+  }
+    @media screen and (min-width: 768px) {
+table{
+  padding-top:10rem;
+} }
+
+    @media screen and (max-width: 767px) {
+table{
+  padding-top:7rem;
+} }
+    @media screen and (min-width: 768px) {
+  .dtx-grid-empty.dtx-grid-show{ padding-top:6.8rem;} }
+     @media screen and (max-width: 767px) {
+  .dtx-grid-empty.dtx-grid-show{ padding-top:4rem;} }
+{%- endstyle -%}
+
+<div class="page-width wishlist">
+  <dtx-wishlist-grid grid_type="wishList">
+     <div class="dtx-grid-empty">
+      <h2>{{ 'products.wishlist.no_records' | t }}</h2>
+    <img src="{{ "empty-cart.png" | asset_url }}" alt="{{ 'products.wishlist.no_records' | t }}" height="150" width="150" loading="lazy" />
+      <a href="{{ routes.all_products_collection_url }}" class=" button button--primary">
+        {{ 'general.continue_shopping' | t }}
+      </a>
+       {% section 'featured-collection' %}
+    </div> 
+
+    <table class="dtx-table">
+      
+      <tbody class="slick-wrapper carousel" data-flickity='{ "cellAlign": "left", "contain": true, "wrapAround": true  }'>
+        <tr id="row_{item.product_handle}" class="grid_template carousel-cell" style="display: none;">
+            
+          <td class="product-thumbnail">
+            <a href="{item.product_url}">
+              <img loading="lazy" src="{item.product_image}" alt="{item.product_title}" width="" height="">
+            </a>
+          </td>
+          <td class="product-name">
+            <a href="{item.product_url}">{item.product_title}</a>
+          </td>
+          <td class="product-price-cart">
+            {item.money_price}
+          </td>
+          <td class="product-wishlist-cart">
+            <a href="{item.product_url}" data-product-variant-id="{item.variant_id}" class="dt-sc-btn button product-cart">
+              Select Options
+            </a>
+          </td>
+          <td>
+            <dtx-remove-wish-item grid_type="wishList">
+              <a href="javascript:void(0);" data-product_handle="{item.product_handle}" class="remove-item  product-cart">
+                 <span> Remove </span> {% render 'icon-remove' %}
+              </a>
+            </dtx-remove-wish-item>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </dtx-wishlist-grid>
+</div>
+
+

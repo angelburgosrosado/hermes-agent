@@ -1,0 +1,31 @@
+{% doc %}
+  Renders a row of trust badges (e.g. Certified Organic, Vegan) below the Add to Cart button.
+  @example
+  {% render 'trust-badges' %}
+{% enddoc %}
+
+<div class="trust-badges" style="display: flex; gap: 1rem; align-items: center; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid rgba(var(--color-foreground), 0.1);">
+  <div class="trust-badge" style="display: flex; align-items: center; gap: 0.5rem; font-size: 1.2rem; font-weight: 600;">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-organic">
+      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"></path>
+      <path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
+      <line x1="9" y1="9" x2="9.01" y2="9"></line>
+      <line x1="15" y1="9" x2="15.01" y2="9"></line>
+    </svg>
+    Certified Organic
+  </div>
+  <div class="trust-badge" style="display: flex; align-items: center; gap: 0.5rem; font-size: 1.2rem; font-weight: 600;">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-vegan">
+      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"></path>
+      <path d="M12 8v8"></path>
+      <path d="M8 12h8"></path>
+    </svg>
+    100% Vegan
+  </div>
+  <div class="trust-badge" style="display: flex; align-items: center; gap: 0.5rem; font-size: 1.2rem; font-weight: 600;">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-purity">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+    </svg>
+    Purity Tested
+  </div>
+</div>

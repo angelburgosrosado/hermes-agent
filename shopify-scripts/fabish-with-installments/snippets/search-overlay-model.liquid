@@ -1,0 +1,90 @@
+ {%- if section.settings.search_style == 'search_icon' -%}
+      <details-overlay-modal class="header__search {% if section.settings.header_icon_type =="text"  %} icon__fallback-content {% endif %}" id="dT_top-sticky">
+          <div class="search-modal modal__content gradient" role="dialog" aria-modal="true" aria-label="{{ 'general.search.search' | t }}">
+            <div class="modal-overlay"></div>
+            
+            <div class="search-modal__content{% if settings.inputs_shadow_vertical_offset != 0 and settings.inputs_shadow_vertical_offset < 0 %} search-modal__content-top{% else %} search-modal__content-bottom{% endif %}" tabindex="-1">
+             <button type="button" class="dT_TopStickySearchCloseBtn search-modal__close-button modal__close-button link link--text focus-inset" aria-label="{{ 'accessibility.close' | t }}">
+                 <svg id="Group_24924" data-name="Group 24924" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="18" height="18" viewBox="0 0 25 25">
+            <defs>
+            <clipPath id="clip-path">
+            <rect id="Rectangle_8252" data-name="Rectangle 8252" width="18" height="18" fill="currentcolor"/>
+            </clipPath>
+            </defs>
+            <g id="Group_24923" data-name="Group 24923" >
+            <path id="Path_38934" data-name="Path 38934" d="M23.214,25a1.78,1.78,0,0,1-1.263-.523L.523,3.048A1.786,1.786,0,0,1,3.048.523L24.477,21.952A1.786,1.786,0,0,1,23.214,25" transform="translate(0)"  fill="currentcolor"/>
+            <path id="Path_38935" data-name="Path 38935" d="M1.786,25A1.786,1.786,0,0,1,.523,21.952L21.952.523a1.786,1.786,0,1,1,2.525,2.525L3.048,24.477A1.78,1.78,0,0,1,1.786,25" transform="translate(0 0)"  fill="currentcolor"/>
+            </g>
+            </svg>
+              </button>
+              {%- if settings.predictive_search_enabled -%}
+          <predictive-search class="search-modal__form" data-loading-text="{{ 'accessibility.loading' | t }}">
+        {%- else -%}
+          <search-form class="search-modal__form">
+        {%- endif -%}
+            <form action="{{ routes.search_url }}" method="get" role="search" class="search search-modal__form">
+              <div class="field">
+                <input class="search__input field__input"
+                  id="{{ input_id }}"
+                  type="search"
+                  name="q"
+                  value="{{ search.terms | escape }}"
+                  placeholder="{{ 'general.search.search' | t }}"
+                  {%- if settings.predictive_search_enabled -%}
+                    role="combobox"
+                    aria-expanded="false"
+                    aria-owns="predictive-search-results"
+                    aria-controls="predictive-search-results"
+                    aria-haspopup="listbox"
+                    aria-autocomplete="list"
+                    autocorrect="off"
+                    autocomplete="off"
+                    autocapitalize="off"
+                    spellcheck="false"
+                  {%- endif -%}
+                >
+                <label class="field__label" for="{{ input_id }}">{{ 'general.search.search' | t }}</label>
+                <input type="hidden" name="options[prefix]" value="last">
+                <button type="reset" class="reset__button field__button{% if search.terms == blank %} hidden{% endif %}" aria-label="{{ 'general.search.reset' | t }}">
+                  <svg class="icon icon-close" aria-hidden="true" focusable="false">
+                    <use xlink:href="#icon-reset">
+                  </svg>
+                </button>
+                <button class="search__button field__button" aria-label="{{ 'general.search.search' | t }}">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="23" height="23" viewBox="0 0 23 23" fill="none">
+        <g clip-path="url(#clip0_376_23)">
+        <path d="M22.7397 19.4379L15.7356 12.4338C16.4288 11.186 16.7918 9.78183 16.7918 8.34433V8.34426C16.7886 3.68913 13.0027 -0.1 8.34433 -0.1C3.68596 -0.1 -0.1 3.68913 -0.1 8.34433C-0.1 12.9996 3.6891 16.7887 8.34433 16.7887C9.78183 16.7887 11.186 16.4256 12.4338 15.7324L19.4379 22.7366C19.672 22.9707 19.9816 23.1 20.3143 23.1C20.647 23.1 20.9566 22.9707 21.1907 22.7366L22.7366 21.1907C22.9707 20.9566 23.1 20.647 23.1 20.3143C23.1 20.0572 23.0228 19.8139 22.8797 19.6086H22.9104L22.7397 19.4379ZM0.915071 8.32872V7.96869C1.11141 4.04117 4.36897 0.905703 8.34433 0.905703C12.4457 0.905703 15.783 4.24301 15.783 8.34433C15.783 9.73099 15.3978 11.0866 14.6708 12.2573C14.6335 12.3165 14.5964 12.3751 14.5564 12.4367C14.3993 12.6739 14.2268 12.9048 14.0422 13.1234L14.0421 13.1233L14.0396 13.1265C14.0309 13.1377 14.0212 13.1487 14.0092 13.1624L14.0084 13.1632C13.9978 13.1753 13.9852 13.1896 13.973 13.205C13.9616 13.2179 13.9526 13.2286 13.9445 13.2381C13.9315 13.2535 13.921 13.2659 13.9073 13.2796L13.9072 13.2795L13.9036 13.2835C13.7124 13.4963 13.5088 13.6999 13.296 13.8911L13.2816 13.9038C13.2331 13.9466 13.1842 13.9898 13.1379 14.028C13.123 14.0396 13.109 14.0511 13.0962 14.0616C13.0828 14.0727 13.0706 14.0827 13.0578 14.0927L13.0578 14.0927L13.0557 14.0944C12.9169 14.2085 12.7725 14.3191 12.6254 14.4202C12.5659 14.4609 12.5076 14.5008 12.4464 14.5406L12.4454 14.5412C12.3982 14.5727 12.3534 14.6026 12.3089 14.6293L12.3086 14.6288L12.3004 14.635C12.3004 14.635 12.2991 14.6358 12.2915 14.6401L12.2903 14.6407C12.2848 14.6438 12.2745 14.6495 12.2641 14.6568C11.0908 15.3828 9.73924 15.7673 8.3537 15.7673C4.25238 15.7673 0.915071 12.43 0.915071 8.32872ZM14.8013 13.789C14.9309 13.6355 15.0536 13.4758 15.171 13.3138L22.0174 20.1602C22.0609 20.2037 22.0849 20.2625 22.0849 20.3237C22.0849 20.3849 22.0609 20.4437 22.0174 20.4872L22.0188 20.4889L20.481 22.0268C20.3888 22.1189 20.2429 22.1189 20.1508 22.0268L13.3047 15.1806C13.4516 15.0741 13.5959 14.9616 13.736 14.8449L13.7362 14.8452L13.7427 14.8388C13.7438 14.8377 13.7458 14.836 13.7537 14.8299L13.7547 14.829C13.7604 14.8246 13.7701 14.8171 13.7797 14.8079C13.809 14.7832 13.8383 14.7578 13.8669 14.733L13.8671 14.7327C13.8969 14.7069 13.926 14.6816 13.955 14.6572L13.955 14.6573L13.9575 14.655L14.0043 14.6129L14.0511 14.5707L14.0518 14.5701C14.2032 14.4313 14.3487 14.289 14.4881 14.1402C14.515 14.1116 14.5411 14.0832 14.5667 14.0553L14.567 14.0549C14.5928 14.0268 14.6181 13.9992 14.6441 13.9717L14.6441 13.9718L14.6473 13.9681C14.685 13.9241 14.7212 13.8819 14.7573 13.8428L14.7574 13.843L14.7619 13.8375L14.7815 13.8134L14.8013 13.789Z" fill="currentColor" stroke="currentColor" stroke-width="0.2"></path>
+        <path d="M13.9312 9.00955C14.2081 9.00955 14.434 8.78365 14.434 8.50669C14.434 5.035 11.6099 2.21403 8.14138 2.21403C7.86442 2.21403 7.63853 2.43992 7.63853 2.71688C7.63853 2.99383 7.86442 3.21973 8.14138 3.21973C11.056 3.21973 13.4283 5.59206 13.4283 8.50669C13.4283 8.78365 13.6542 9.00955 13.9312 9.00955Z" fill="currentColor" stroke="currentColor" stroke-width="0.2"></path>
+        </g>
+        <defs>
+        <clipPath id="clip0_376_23">
+        <rect width="23" height="23" fill="white"></rect>
+        </clipPath>
+        </defs>
+      </svg>
+                </button>
+              </div>
+                {% render 'search-tags-collections', headerType: section.settings.logo_position, line: 'line-70' %}   
+              {%- if settings.predictive_search_enabled -%}
+                <div class="predictive-search predictive-search--header" tabindex="-1" data-predictive-search>
+                  <div class="predictive-search__loading-state">
+                    <svg aria-hidden="true" focusable="false" class="spinner" viewBox="0 0 66 66" xmlns="http://www.w3.org/2000/svg">
+                      <circle class="path" fill="none" stroke-width="6" cx="33" cy="33" r="30"></circle>
+                    </svg>
+                  </div>
+                </div>
+
+                <span class="predictive-search-status visually-hidden" role="status" aria-hidden="true"></span>
+              {%- endif -%}
+               {% render 'search-card-product-model', headerType: section.settings.logo_position, line: 'line-70' %}  
+            </form>
+          {%- if settings.predictive_search_enabled -%}
+            </predictive-search>
+          {%- else -%}
+            </search-form>
+          {%- endif -%}             
+         
+            </div>  
+          </div>        
+                  </details-overlay-modal>
+        {%- endif -%}

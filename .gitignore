@@ -88,6 +88,7 @@ commandcenter/projects/
 /devtools-frontend/
 /puppeteer/
 /cinematic-site-components/
+/deepgram-python-sdk/
 
 # Demo media for ClaudeClaw capabilities (keep out of git history)
 /claudeclaw_capabilities.html

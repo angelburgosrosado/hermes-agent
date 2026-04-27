@@ -1,0 +1,514 @@
+{{ 'model-newsletter-section.css' | asset_url | stylesheet_tag }}
+{% if section.settings.enable_newsletter_modal != blank %}
+  <div class="newsletter-container" id="newsletter-container" style="display:none">
+    <span class="newsletter-container-overlay color-{{ section.settings.color_scheme }} gradient"></span>
+    <div class="newsletter-modal {{ section_overlay }} color-{{ section.settings.color_scheme }} {{ section.settings.block_text_align }} {{ section.settings.form_style }}"  data-image-loading-animation>
+        <div class="newsletter-content style-1">
+           <div class="newsletter__wrapper">
+             {%- for block in section.blocks -%}
+               {%- case block.type -%}
+               {%- when 'heading' -%}
+                <h2 class="h1 title-wrapper-with-link  "  {{ block.shopify_attributes }}>{{ block.settings.heading | escape }}</h2>
+                {%- when 'paragraph' -%}
+                <div class="newsletter__subheading rte" {{ block.shopify_attributes }}>{{ block.settings.paragraph }}</div>
+                {%- when 'email_form' -%}
+                <div {{ block.shopify_attributes }}>
+                {% form 'customer', class: 'newsletter-form' %}
+                  <input type="hidden" name="contact[tags]" value="newsletter">
+                 <div class="newsletter-form__field-wrapper">
+                 <div class="field">
+                  <i class="fa fa-envelope"></i>
+                   <input
+                     id="NewsletterForm--{{ section.id }}"
+                     type="email"
+                     name="contact[email]"
+                     class="field__input"
+                     value="{{ form.email }}"
+                     aria-required="true"
+                     autocorrect="off"
+                     autocapitalize="off"
+                     autocomplete="email"
+                     {% if form.errors %}
+                     autofocus
+                     aria-invalid="true"
+                     aria-describedby="Newsletter-error--{{ section.id }}"
+                     {% elsif form.posted_successfully? %}
+                     aria-describedby="Newsletter-success--{{ section.id }}"
+                     {% endif %}
+                     placeholder="{{ 'newsletter.label' | t }}"
+                     required
+                     >
+                 <label class="field__label visually-hidden" for="NewsletterForm--{{ section.id }}">
+                 {{ 'newsletter.label' | t }}
+                 </label>                   
+                 </div> 
+                     <div class="newsletter-checkbox">
+                  <!--
+                    <label> <input type="checkbox" name="checkbox"  value="check"> 
+                 <span> {{ 'newsletter.condition' | t }}I agree to the privacy policy </span></label> -->
+                       
+                       <div class="blog-content-checkbox">
+    <label class="checkbox">
+                  
+      <input class="checkbox__trigger visuallyhidden" type="checkbox" value="check"/>
+      <span class="checkbox__symbol">
+        <svg aria-hidden="true" class="icon-checkbox" width="28px" height="28px" viewBox="0 0 28 28" version="1" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 14l8 7L24 7"></path>
+        </svg>
+      </span>
+      {{ 'newsletter.condition' | t }}
+    </label>
+  </div>
+                      </div>
+                      <button type="submit" class="newsletter__button button" name="commit">
+                 {{ 'newsletter.button_label' | t }}
+                 </button> 
+                 {%- if form.errors -%}
+                 <small class="newsletter-form__message form__message" id="Newsletter-error--{{ section.id }}">{% render 'icon-error' %}{{ form.errors.translated_fields['email'] | capitalize }} {{ form.errors.messages['email'] }}</small>
+                 {%- endif -%}  
+              
+                 </div>  
+                {%- if form.posted_successfully? -%}
+                  <h3 class="newsletter-form__message newsletter-form__message--success form__message" id="Newsletter-success--{{ section.id }}" tabindex="-1" autofocus>{% render 'icon-success' %}{{ 'newsletter.success' | t }}</h3>
+                  {%- endif -%}
+                 {% endform %}   
+                </div> 
+               {%- endcase -%} 
+             {%- endfor -%}  
+           </div> 
+          {% if section.settings.enable_social_icon != blank%}
+               <ul class="footer__list-social list-unstyled list-social" role="list">
+                 {% render 'social-icons' %}
+                </ul>
+         {% endif %} 
+        </div> 
+        
+          <div class="newsletter-bg-img">
+            {% if section.settings.modal_bg_image %}
+              {{ section.settings.modal_bg_image | image_url: width: 1920 | image_tag }}
+             {%- else -%}
+             {{ 'detailed-apparel-1' | placeholder_svg_tag: 'placeholder-svg' }}
+            {% endif %}
+            </div>
+         
+        <a class="close-window icon-button close-icon close_icon_button">{% render 'icon-close' %}</a>
+    </div> 
+  
+  </div> 
+
+  <style>
+    .newsletter-modal.text-start .newsletter__wrapper .title-wrapper-with-link{     animation: flipInX var(--anim-time) ease both .2s; }
+    .newsletter-modal.text-start .newsletter__wrapper .title-wrapper-with-link span{ margin-bottom:0; overflow:visible;}
+.newsletter-modal.text-start .newsletter__wrapper .title-wrapper-with-link{ display:block;}
+
+ /* .newsletter-container.show-modal .pull-in .char {
+  transition: transform 1s cubic-bezier(.8,0,.2,1) !Important;
+    transform:none;
+  transition-delay: calc( 1s * ( 1 - var(--distance-percent) ) ) !Important;
+}
+ .newsletter-container .pull-in .char {
+  transition-delay: calc( 0.2s * var(--distance-percent) );
+   transform: scale(0.5) translateX( calc(-1.5em * var(--distance-sine)) );
+ 
+} 
+ .shopify-section.dt-sc-newsletter-modal-overlay .newsletter-container .pull-in .char {
+    transition-delay:4s;  /* calc( 5s * var(--distance-percent) ); */
+    transition: transform 5s cubic-bezier(.8,0,.2,1);
+  transform: scale(0.6) translateX( calc(-1em * var(--distance-sine)) );
+}
+.shopify-section.dt-sc-newsletter-modal-overlay .newsletter-container.show-modal .pull-in .char {
+  /* transition: transform 1s cubic-bezier(.8,0,.2,1); */
+  transform:none;
+  
+  transition-delay:5s; /* calc( 2s * ( 1 - var(--distance-percent) ) ); */
+
+}*/
+
+    .checkbox-wrapper-19 .check-box{ margin-right:10px;}
+    .checkbox-wrapper-19 span{    display: flex;
+    width: 100%;
+    left: 100%;
+    margin-left: 15px;
+    position: relative;
+    min-width: 30rem;}
+ .checkbox-wrapper-19 {
+    box-sizing: border-box;
+    --background-color: #fff;
+    --checkbox-height: 25px;
+  }
+
+  @-moz-keyframes dothabottomcheck-19 {
+    0% {
+      height: 0;
+    }
+    100% {
+      height: calc(var(--checkbox-height) / 2);
+    }
+  }
+
+  @-webkit-keyframes dothabottomcheck-19 {
+    0% {
+      height: 0;
+    }
+    100% {
+      height: calc(var(--checkbox-height) / 2);
+    }
+  }
+
+  @keyframes dothabottomcheck-19 {
+    0% {
+      height: 0;
+    }
+    100% {
+      height: calc(var(--checkbox-height) / 2);
+    }
+  }
+
+  @keyframes dothatopcheck-19 {
+    0% {
+      height: 0;
+    }
+    50% {
+      height: 0;
+    }
+    100% {
+      height: calc(var(--checkbox-height) * 1.2);
+    }
+  }
+
+  @-webkit-keyframes dothatopcheck-19 {
+    0% {
+      height: 0;
+    }
+    50% {
+      height: 0;
+    }
+    100% {
+      height: calc(var(--checkbox-height) * 1.2);
+    }
+  }
+
+  @-moz-keyframes dothatopcheck-19 {
+    0% {
+      height: 0;
+    }
+    50% {
+      height: 0;
+    }
+    100% {
+      height: calc(var(--checkbox-height) * 1.2);
+    }
+  }
+
+  .checkbox-wrapper-19 input[type=checkbox] {
+    display: none;
+  }
+
+  .checkbox-wrapper-19 .check-box {
+    height: var(--checkbox-height);
+    width: var(--checkbox-height);
+    background-color: transparent;
+    border: calc(15px * .1) solid #000;
+    border-radius: 5px;
+    position: relative;
+    display:flex;  /* inline-block; */
+    align-items:center;
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+    -moz-transition: border-color ease 0.2s;
+    -o-transition: border-color ease 0.2s;
+    -webkit-transition: border-color ease 0.2s;
+    transition: border-color ease 0.2s;
+    cursor: pointer;
+  }
+  .checkbox-wrapper-19 .check-box::before,
+  .checkbox-wrapper-19 .check-box::after {
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+    position: absolute;
+    height: 0;
+    width: calc(14px * .2);
+    background-color:var(--gradient-base-accent-2);
+    display: inline-block;
+    -moz-transform-origin: left top;
+    -ms-transform-origin: left top;
+    -o-transform-origin: left top;
+    -webkit-transform-origin: left top;
+    transform-origin: left top;
+    border-radius: 5px;
+    content: " ";
+    -webkit-transition: opacity ease 0.5;
+    -moz-transition: opacity ease 0.5;
+    transition: opacity ease 0.5;
+  }
+  .checkbox-wrapper-19 .check-box::before {
+    top: calc(var(--checkbox-height) * .72);
+    left: calc(var(--checkbox-height) * .41);
+    box-shadow: 0 0 0 calc(var(--checkbox-height) * .05) var(--background-color);
+    -moz-transform: rotate(-135deg);
+    -ms-transform: rotate(-135deg);
+    -o-transform: rotate(-135deg);
+    -webkit-transform: rotate(-135deg);
+    transform: rotate(-135deg);
+  }
+  .checkbox-wrapper-19 .check-box::after {
+    top: calc(var(--checkbox-height) * .37);
+  /*  left: calc(var(--checkbox-height) * .05); */
+    -moz-transform: rotate(-45deg);
+    -ms-transform: rotate(-45deg);
+    -o-transform: rotate(-45deg);
+    -webkit-transform: rotate(-45deg);
+    transform: rotate(-45deg);
+  }
+
+  .checkbox-wrapper-19 input[type=checkbox]:checked + .check-box,
+  .checkbox-wrapper-19 .check-box.checked {
+    border-color:var(--gradient-base-accent-2);
+  }
+  .checkbox-wrapper-19 input[type=checkbox]:checked + .check-box::after,
+  .checkbox-wrapper-19 .check-box.checked::after {
+    height: calc(var(--checkbox-height) / 2);
+    -moz-animation: dothabottomcheck-19 0.2s ease 0s forwards;
+    -o-animation: dothabottomcheck-19 0.2s ease 0s forwards;
+    -webkit-animation: dothabottomcheck-19 0.2s ease 0s forwards;
+    animation: dothabottomcheck-19 0.2s ease 0s forwards;
+  }
+  .checkbox-wrapper-19 input[type=checkbox]:checked + .check-box::before,
+  .checkbox-wrapper-19 .check-box.checked::before {
+    height: calc(var(--checkbox-height) * 1.2);
+    -moz-animation: dothatopcheck-19 0.4s ease 0s forwards;
+    -o-animation: dothatopcheck-19 0.4s ease 0s forwards;
+    -webkit-animation: dothatopcheck-19 0.4s ease 0s forwards;
+    animation: dothatopcheck-19 0.4s ease 0s forwards;
+  }
+  span.newsletter-container-overlay{   
+    opacity: {{ section.settings.modal_bg_opacity }};
+  }
+  /* .newsletter-container .newsletter-modal:after{
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+   {% unless section.settings.modal_icon_image == blank %}
+    background-image: url('{{section.settings.modal_icon_image | image_url: width: 400 }}');
+  {% endunless %}
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-color: transparent;
+    width: 40%;
+    height: 40%;
+    z-index: 1;
+    transform: translate(-50%, 50%) rotate(20deg);
+    transition: all var(--duration-default) linear .2s;
+    pointer-events: none;
+}
+ .newsletter-container.show-modal .newsletter-modal:after {animation: moverocketUp 1s ease both;}
+  @keyframes moverocketUp{
+    0% { transform: translate(-50%, 50%) rotate(80deg); }
+    100% { transform: translate(-20%, -20%) rotate(20deg);}
+  } */
+  </style>
+
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+    var delay = {{ section.settings.cookie_modal_delay}}; 	
+     $newsletter_container = $('#newsletter-container'); 
+
+    jQuery(document).ready(function ($) {      
+      if( getCookie('NewsletterCookie') == ""){        
+        setTimeout(function(){      
+          showNewsletterPopup();      
+        }, delay);
+      }
+      else
+      {
+        $newsletter_container.css('display', 'none'); 
+      };
+
+      $('.close-window, .newsletter-container .newsletter-container-overlay').click(function(e){                     
+        $newsletter_container.css('opacity', '0');
+        $newsletter_container.css('visibility', 'hidden'); 
+        $newsletter_container.css('pointer-events', 'none');     
+        $newsletter_container.removeClass("show-modal");  
+        $('body').css('overflow-y', 'auto');
+        $('body').css('height', 'auto');
+        e.preventDefault();
+        setCookie('NewsletterCookie', 'cookie-has-been-set', {{ section.settings.cookie_expires}});
+        });
+
+
+        function showNewsletterPopup(e){
+          $newsletter_container.css('display', 'block');                
+          $newsletter_container.css('opacity', '1');
+          $newsletter_container.css('visibility', 'visible');  
+          $newsletter_container.addClass("show-modal");  
+          $('body').css('overflow-y', 'hidden');   
+          $('body').css('height', '100vh');      
+        }       
+
+        $('.newsletter-success button').on('click', function(){
+          window.location.replace('{{shop.url}}');
+                                  });
+
+          $('.contact-form').on('submit', function(){
+            setCookie('NewsletterCookie', 'cookie-has-been-set', {{ section.settings.cookie_expires}});
+                      });
+
+          });
+
+          function setCookie(cname,cvalue,exdays)
+          {
+            var d = new Date();
+            d.setTime(d.getTime()+({{ section.settings.cookie_expires}}*24*60*60*1000));
+            var expires = "expires="+d.toGMTString();
+            document.cookie = cname+"="+cvalue+"; "+expires+"; path=/";
+          }
+
+          function getCookie(cname)
+          {
+            var name = cname + "=";
+            var ca = document.cookie.split(';');
+            for(var i=0; i<ca.length; i++) 
+            {
+              var c = jQuery.trim(ca[i]);
+              if (c.indexOf(name)==0) return c.substring(name.length,c.length);
+            }
+            return "";
+          }
+        });
+
+  </script>
+  {% endif %}
+
+
+  {% schema %}
+
+  {
+  "name": "t:sections.newsletter-modal.name",
+  "class": "dt-sc-newsletter-modal-overlay",
+  "settings": [
+  {
+      "type": "select",
+      "id": "color_scheme",
+      "options": [
+        {
+          "value": "accent-1",
+          "label": "t:sections.all.colors.accent_1.label"
+        },
+        {
+          "value": "accent-2",
+          "label": "t:sections.all.colors.accent_2.label"
+        },
+        {
+          "value": "background-1",
+          "label": "t:sections.all.colors.background_1.label"
+        },
+        {
+          "value": "background-2",
+          "label": "t:sections.all.colors.background_2.label"
+        },
+        {
+          "value": "inverse",
+          "label": "t:sections.all.colors.inverse.label"
+        }
+      ],
+      "default": "background-1",
+      "label": "t:sections.all.colors.label"
+     }, 
+    {
+    "type": "text",
+    "id": "modal_bg_opacity",  
+    "label": "t:sections.newsletter-modal.settings.modal_bg_opacity.label"
+    }, 
+  {
+  "type": "checkbox",
+  "id": "enable_newsletter_modal",
+   "label": "t:sections.newsletter-modal.settings.enable_newsletter_modal.label"  
+  },   
+  {
+  "type": "range",
+  "id": "cookie_expires",  
+  "label": "t:sections.newsletter-modal.settings.cookie_expires.label",  
+  "min": 1,
+  "max": 30,
+  "step": 1,
+  "default": 1,
+ "info": "t:sections.newsletter-modal.settings.cookie_expires.info"
+  },
+  {
+  "type": "text",
+  "id": "cookie_modal_delay",
+  "label": "t:sections.newsletter-modal.settings.cookie_modal_delay.label", 
+  "default": "5000",
+  "info": "t:sections.newsletter-modal.settings.cookie_modal_delay.info"
+  },  
+  {
+  "type": "select",
+  "id": "block_text_align",
+  "label": "t:sections.newsletter-modal.settings.block_text_align.label",  
+  "options": [
+  {
+  "value": "text-center",
+  "label": "t:sections.newsletter-modal.settings.block_text_align.options__1.label"
+  },
+  {
+  "value": "text-start",
+  "label": "t:sections.newsletter-modal.settings.block_text_align.options__2.label"
+  },
+  {
+  "value": "text-end",
+  "label": "t:sections.newsletter-modal.settings.block_text_align.options__3.label"
+  }
+  ]
+  },
+  {
+  "type": "image_picker",
+  "id": "modal_bg_image",  
+  "label": "t:sections.newsletter-modal.settings.modal_bg_image.label",
+  "info": "Size: 1000x1200"
+  },  
+  {
+  "type": "checkbox",
+  "id": "enable_social_icon",
+  "label": "t:sections.newsletter-modal.settings.enable_social_icon.label",
+  "default": false
+  } 
+  ],
+  "blocks": [
+  {
+  "type": "heading",
+  "name": "t:sections.newsletter-modal.blocks.heading.name",
+  "limit": 1,
+  "settings": [
+  {
+  "type": "text",
+  "id": "heading",
+  "default": "Subscribe to our emails",
+  "label": "t:sections.newsletter-modal.blocks.heading.settings.heading.label"
+  }
+  ]
+  },
+  {
+  "type": "paragraph",
+  "name": "t:sections.newsletter-modal.blocks.paragraph.name",
+  "limit": 1,
+  "settings": [
+  {
+  "type": "richtext",
+  "id": "paragraph",
+  "default": "<p>Be the first to know about new collections and exclusive offers.</p>",
+  "label": "t:sections.newsletter-modal.blocks.paragraph.settings.paragraph.label"
+  }
+  ]
+  },
+  {
+  "type": "email_form",
+  "name": "t:sections.newsletter-modal.blocks.email_form.name",
+  "limit": 1
+  }
+  ]
+  }
+
+  {% endschema %}

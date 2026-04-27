@@ -1,0 +1,83 @@
+.header .search__input.field__input {
+/*   padding-left: 8rem; */
+/*   background: #fae4e5; */
+/*   width: 29rem; */
+  padding: 0 5rem 0 1.5rem;
+
+}
+.search__input.field__input {
+      text-transform: capitalize;
+  font-size:1.4rem;
+   background: var(--gradient-background);
+/*   width: 29rem; */
+  padding: 0 5rem 0 1.5rem;
+}
+.search__input.field__input:focus{ padding: 0 5rem 0 1.5rem;}
+.search__button {
+/*   left: var(--inputs-border-width); */
+  top: var(--inputs-border-width);
+}
+.search-modal .card__content ul[class*=variant-option-color]{ margin-top:0;}
+.search-modal .card-wrapper .card-information.review{ display:none;}
+.search__button:focus-visible {
+  background-color: rgb(var(--color-background));
+  z-index: 2;
+}
+
+.search__button:focus {
+  background-color: rgb(var(--color-background));
+  z-index: 2;
+}
+.search-modal .card__content .variant-option-color li:first-child a tooltip.tooltip{ left:100%;     transform: translateY(-4px) translate(-32%);
+    -webkit-transform: translateY(-4px) translateX(-32%); }
+.search-modal .card__content .variant-option-color li:first-child a tooltip.tooltip:before{ left:15%;}
+.search__button:not(:focus-visible):not(.focused){
+  box-shadow: inherit;
+/*   background-color: inherit; */
+  background:none;
+}
+/* .card__information .caption-with-letter-spacing{ display:none;} */
+.search__button .icon {
+  height: 1.8rem;
+  width: 1.8rem;
+  color: var(--color-icon);
+  background: none;
+}
+
+
+/* .search__input.field__input {
+    padding-left: 8rem;
+    background: var(--gradient-base-background-2);
+} */
+.field__input, .customer .field input {
+    flex-grow: 1;
+    text-align: left;
+    padding: 1rem;
+    margin: var(--inputs-border-width);
+    /* transition: box-shadow var(--duration-short) ease; */
+}
+.field__input{height: 5rem;}
+.field__button{height: 5rem;}
+.field__input{  
+    flex-grow: 1;
+    text-align: left;
+    padding: 1rem;
+    margin: var(--inputs-border-width);
+    /* transition: box-shadow var(--duration-short) ease; */
+}
+/* .field__input:focus{padding: 0 1rem 0 5rem;} */
+.field__label{    top: calc(0.9rem + var(--inputs-border-width));  }
+/* Remove extra spacing for search inputs in Safari */
+input::-webkit-search-decoration {
+  -webkit-appearance: none;
+}
+header .field__label {
+    display: none;
+}
+/*Contact - search*/
+/* .contact .field__input, .field__button {
+    height: 4rem;
+    border-radius: 0;
+  background:transparent;
+}
+.contact .main-page-title{margin-bottom:0;} */

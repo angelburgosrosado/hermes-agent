@@ -1,0 +1,43 @@
+.product-recommendations {
+  display: block;
+  z-index:0;
+  position: relative;
+}
+
+.product-recommendations:not(.product-recommendations--loaded) {
+
+  margin: 0;
+}
+
+.product-recommendations__heading {
+  margin: 0;
+  margin-bottom: 3rem;
+}
+.product-recommendations__heading {
+  margin: 0;
+  margin-bottom: 3rem;
+    font-weight: 600;
+}
+
+/* .product-recommendations .swiper-button-next, .product-recommendations .swiper-button-prev{top:36%;transform:translateY(-50%);-webkit-transform:translateY(-50%);} */
+
+
+@media screen and (min-width: 768px) {
+  .product-recommendations__heading {
+  font-size: 3.6rem;
+  }
+}
+@media screen and (max-width: 767px) {
+.product-recommendations:not(.product-recommendations--loaded){
+    padding: 0 2rem;
+} }
+
+@media screen and (min-width: 768px) {
+.product-recommendations:not(.product-recommendations--loaded){
+    padding: 0;
+} 
+}
+
+.product-recommendations tooltip.tooltip{ transform: translateY(-8px) translateX(0); -webkit-transform: translateY(-8px) translateX(0); left:0;}
+.product-recommendations tooltip.tooltip:before{left:15px;}
+.product-recommendations .card__content .variant-option-color li a:hover tooltip.tooltip{ transform: translateY(-4px) translateX(0);-webkit-transform: translateY(-4px) translateX(0);}

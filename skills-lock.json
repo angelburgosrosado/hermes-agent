@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "skills": {
+    "google-veo": {
+      "source": "inference-sh/skills",
+      "sourceType": "github",
+      "computedHash": "1c0632db10fd673d9e205b184944d1704df882b2e4fc787816d71cca75c46a81"
+    },
+    "seo-audit": {
+      "source": "coreyhaines31/marketingskills",
+      "sourceType": "github",
+      "computedHash": "ddd028951738fcbcdebf0f9bd90b708c55d1b9370a31603e0c13e5b262d8b8bb"
+    },
+    "shopify-liquid": {
+      "source": "shopify/shopify-ai-toolkit",
+      "sourceType": "github",
+      "computedHash": "19c69206ae3920e89133f4709e0ed3ed5c073cccd2b3db9e1e8e08cd97374091"
+    }
+  }
+}

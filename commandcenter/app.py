@@ -73,172 +73,256 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS - Dark theme with gold accents
-# Palette:
-#   bg0  #0f0f1a  bg1  #1a1a2e  bg2  #16213e
-#   text #f3f4f6  muted #9ca3af
-#   gold #ffd700  amber #ff8c00
-#   success #2ecc71  warn #f59e0b  error #e74c3c  info #3b82f6
+# Adaptive theme — works in both Streamlit dark and light modes.
+# We declare CSS custom properties at :root for dark (the config default),
+# then flip them via @media (prefers-color-scheme: light) AND via
+# Streamlit's own theme attribute when the user toggles in-app.
+# Gold accent stays constant across both modes.
 st.markdown("""
 <style>
+    :root {
+        /* Dark defaults */
+        --cc-surface-0: #0f0f1a;
+        --cc-surface-1: #1a1a2e;
+        --cc-surface-2: #16213e;
+        --cc-text:      #f3f4f6;
+        --cc-text-mute: #9ca3af;
+        --cc-border:    rgba(212,160,23,0.30);
+        --cc-card-bg:   rgba(255,255,255,0.05);
+        --cc-card-bg2:  rgba(255,255,255,0.08);
+        --cc-input-bg:  #1a1a2e;
+        --cc-code-bg:   #0d1117;
+        --cc-code-fg:   #c9d1d9;
+
+        /* Brand accent — same in both modes */
+        --cc-gold:      #d4a017;
+        --cc-gold-soft: rgba(212,160,23,0.16);
+        --cc-amber:     #c2410c;
+
+        /* Status hues — same in both modes */
+        --cc-success:   #16a34a;
+        --cc-warn:      #d97706;
+        --cc-error:     #dc2626;
+        --cc-info:      #2563eb;
+    }
+
+    /* Light-mode overrides — applied when OS is light *and* Streamlit
+       hasn't been forced to dark by app config. Streamlit also sets
+       data-theme on the body, so we cover both signals. */
+    @media (prefers-color-scheme: light) {
+        :root {
+            --cc-surface-0: #fafaf7;
+            --cc-surface-1: #f1f1ea;
+            --cc-surface-2: #e8e6dd;
+            --cc-text:      #18181b;
+            --cc-text-mute: #57534e;
+            --cc-border:    rgba(180,130,10,0.40);
+            --cc-card-bg:   rgba(0,0,0,0.04);
+            --cc-card-bg2:  rgba(0,0,0,0.07);
+            --cc-input-bg:  #ffffff;
+            --cc-code-bg:   #f5f5f4;
+            --cc-code-fg:   #1c1917;
+            --cc-gold:      #b4820a;
+            --cc-gold-soft: rgba(180,130,10,0.14);
+        }
+    }
+    /* If Streamlit explicitly renders the light theme, force light tokens
+       regardless of OS preference. Streamlit puts data-theme on body. */
+    body[data-theme="light"] {
+        --cc-surface-0: #fafaf7;
+        --cc-surface-1: #f1f1ea;
+        --cc-surface-2: #e8e6dd;
+        --cc-text:      #18181b;
+        --cc-text-mute: #57534e;
+        --cc-border:    rgba(180,130,10,0.40);
+        --cc-card-bg:   rgba(0,0,0,0.04);
+        --cc-card-bg2:  rgba(0,0,0,0.07);
+        --cc-input-bg:  #ffffff;
+        --cc-code-bg:   #f5f5f4;
+        --cc-code-fg:   #1c1917;
+        --cc-gold:      #b4820a;
+        --cc-gold-soft: rgba(180,130,10,0.14);
+    }
+
     /* ── Root surface ──────────────────────────────────────────────── */
     .stApp {
-        background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 50%, #16213e 100%);
-        color: #f3f4f6;
+        background: linear-gradient(135deg,
+            var(--cc-surface-0) 0%,
+            var(--cc-surface-1) 50%,
+            var(--cc-surface-2) 100%) !important;
+        color: var(--cc-text) !important;
     }
 
-    /* ── Make Streamlit's built-in widgets legible on dark bg ──────── */
-    /* Metric value + label */
-    [data-testid="stMetricValue"] { color: #ffd700 !important; font-weight: 700; }
-    [data-testid="stMetricLabel"] { color: #e5e7eb !important; }
-    [data-testid="stMetricDelta"] { color: #9ca3af !important; }
+    /* ── Streamlit widgets ─────────────────────────────────────────── */
+    [data-testid="stMetricValue"] { color: var(--cc-gold) !important; font-weight: 700; }
+    [data-testid="stMetricLabel"] { color: var(--cc-text) !important; }
+    [data-testid="stMetricDelta"] { color: var(--cc-text-mute) !important; }
 
-    /* Text inputs, textareas, selects */
-    .stTextInput input, .stTextArea textarea, .stSelectbox div[data-baseweb="select"] > div,
-    .stMultiSelect div[data-baseweb="select"] > div, .stNumberInput input {
-        background-color: #1a1a2e !important;
-        color: #f3f4f6 !important;
-        border: 1px solid rgba(255,215,0,0.25) !important;
+    .stTextInput input, .stTextArea textarea,
+    .stSelectbox div[data-baseweb="select"] > div,
+    .stMultiSelect div[data-baseweb="select"] > div,
+    .stNumberInput input, .stDateInput input {
+        background-color: var(--cc-input-bg) !important;
+        color: var(--cc-text) !important;
+        border: 1px solid var(--cc-border) !important;
     }
-    .stTextInput input::placeholder, .stTextArea textarea::placeholder {
-        color: #6b7280 !important;
+    .stTextInput input::placeholder,
+    .stTextArea textarea::placeholder { color: var(--cc-text-mute) !important; }
+
+    .stTextInput label, .stTextArea label, .stSelectbox label,
+    .stMultiSelect label, .stNumberInput label, .stSlider label,
+    .stCheckbox label, .stRadio label, .stDateInput label,
+    .stFileUploader label {
+        color: var(--cc-text) !important; font-weight: 500;
     }
 
-    /* Labels above widgets */
-    .stTextInput label, .stTextArea label, .stSelectbox label, .stMultiSelect label,
-    .stNumberInput label, .stSlider label, .stCheckbox label, .stRadio label,
-    .stDateInput label, .stFileUploader label {
-        color: #e5e7eb !important; font-weight: 500;
-    }
-
-    /* Buttons */
-    .stButton > button {
-        background: linear-gradient(135deg, rgba(255,215,0,0.15), rgba(255,140,0,0.08)) !important;
-        color: #ffd700 !important;
-        border: 1px solid rgba(255,215,0,0.4) !important;
+    /* Buttons — secondary (default) */
+    .stButton > button, .stDownloadButton > button {
+        background: var(--cc-gold-soft) !important;
+        color: var(--cc-gold) !important;
+        border: 1px solid var(--cc-border) !important;
         font-weight: 600;
     }
-    .stButton > button:hover {
-        background: linear-gradient(135deg, rgba(255,215,0,0.25), rgba(255,140,0,0.15)) !important;
-        border-color: #ffd700 !important;
-        color: #fff !important;
+    .stButton > button:hover, .stDownloadButton > button:hover {
+        background: var(--cc-gold) !important;
+        color: var(--cc-surface-0) !important;
+        border-color: var(--cc-gold) !important;
     }
+    /* Buttons — primary */
     .stButton > button[kind="primary"] {
-        background: linear-gradient(135deg, #ffd700, #ff8c00) !important;
-        color: #0f0f1a !important;
+        background: linear-gradient(135deg, var(--cc-gold), var(--cc-amber)) !important;
+        color: #ffffff !important;
+        border: 1px solid var(--cc-gold) !important;
     }
-    .stDownloadButton > button { color: #ffd700 !important; border-color: rgba(255,215,0,0.4) !important; }
+    .stButton > button[kind="primary"]:hover { filter: brightness(1.1); }
+    /* Disabled state must stay legible too */
+    .stButton > button:disabled {
+        opacity: 0.55;
+        color: var(--cc-text-mute) !important;
+    }
 
     /* Tabs */
     .stTabs [data-baseweb="tab-list"] { gap: 4px; }
     .stTabs [data-baseweb="tab"] {
-        color: #9ca3af !important; background: rgba(255,255,255,0.02);
+        color: var(--cc-text-mute) !important;
+        background: var(--cc-card-bg);
         border-radius: 8px 8px 0 0;
     }
     .stTabs [aria-selected="true"] {
-        color: #ffd700 !important; background: rgba(255,215,0,0.08) !important;
-        border-bottom: 2px solid #ffd700;
+        color: var(--cc-gold) !important;
+        background: var(--cc-gold-soft) !important;
+        border-bottom: 2px solid var(--cc-gold);
     }
 
     /* Expanders */
-    .streamlit-expanderHeader, details summary { color: #e5e7eb !important; }
-    .streamlit-expander { border-color: rgba(255,215,0,0.2) !important; }
+    .streamlit-expanderHeader, details summary { color: var(--cc-text) !important; }
+    .streamlit-expander { border-color: var(--cc-border) !important; }
 
-    /* Checkboxes / radios */
-    .stCheckbox > label > div[role="checkbox"], .stRadio > label > div[role="radio"] {
-        border-color: rgba(255,215,0,0.4) !important;
+    /* Captions / helper text */
+    .stCaption, small, [data-testid="stCaptionContainer"] {
+        color: var(--cc-text-mute) !important;
     }
-
-    /* Captions, helper text */
-    .stCaption, small, [data-testid="stCaptionContainer"] { color: #9ca3af !important; }
 
     /* Sidebar */
     [data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #0f0f1a, #16213e) !important;
-        border-right: 1px solid rgba(255,215,0,0.15);
+        background: linear-gradient(180deg, var(--cc-surface-0), var(--cc-surface-2)) !important;
+        border-right: 1px solid var(--cc-border);
     }
-    [data-testid="stSidebar"] * { color: #e5e7eb; }
+    [data-testid="stSidebar"], [data-testid="stSidebar"] p,
+    [data-testid="stSidebar"] li, [data-testid="stSidebar"] span,
+    [data-testid="stSidebar"] label { color: var(--cc-text) !important; }
     [data-testid="stSidebar"] h1, [data-testid="stSidebar"] h2,
-    [data-testid="stSidebar"] h3 { color: #ffd700 !important; }
+    [data-testid="stSidebar"] h3 { color: var(--cc-gold) !important; }
 
-    /* Alert boxes — keep Streamlit's color cues but force text visibility */
-    [data-testid="stAlert"] p, [data-testid="stAlertContentInfo"] p,
-    [data-testid="stAlertContentSuccess"] p, [data-testid="stAlertContentWarning"] p,
-    [data-testid="stAlertContentError"] p { color: #0f0f1a !important; font-weight: 500; }
+    /* Alerts — keep Streamlit's tinted backgrounds; ensure text contrasts.
+       The previous version forced text to near-black, which became invisible
+       on Streamlit's dark-mode tinted alert backgrounds. We use currentColor
+       and let each alert variant pick a strong, accessible foreground. */
+    [data-testid="stAlert"] {
+        border: 1px solid var(--cc-border) !important;
+    }
+    [data-testid="stAlert"] p,
+    [data-testid="stAlert"] div,
+    [data-testid="stAlert"] span {
+        color: var(--cc-text) !important;
+        font-weight: 500;
+    }
 
-    /* Markdown body text inside main area */
+    /* Body markdown — !important so Streamlit's defaults can't undo us */
     .block-container p, .block-container li, .block-container span,
-    .block-container label { color: #e5e7eb; }
+    .block-container label, .block-container td, .block-container th {
+        color: var(--cc-text) !important;
+    }
     .block-container h1, .block-container h2, .block-container h3,
-    .block-container h4 { color: #ffd700; }
-    .block-container a { color: #ffd700; }
+    .block-container h4 { color: var(--cc-gold) !important; }
+    .block-container a { color: var(--cc-gold) !important; }
 
     /* Code blocks */
     .stCodeBlock, pre, code {
-        background: #0d1117 !important; color: #c9d1d9 !important;
-        border: 1px solid rgba(255,215,0,0.15) !important;
+        background: var(--cc-code-bg) !important;
+        color: var(--cc-code-fg) !important;
+        border: 1px solid var(--cc-border) !important;
     }
 
-    /* Dataframes / tables */
+    /* Dataframes */
     [data-testid="stDataFrame"] {
-        background: rgba(255,255,255,0.04) !important;
-        border: 1px solid rgba(255,215,0,0.15) !important;
+        background: var(--cc-card-bg) !important;
+        border: 1px solid var(--cc-border) !important;
     }
 
     /* ── Custom classes ────────────────────────────────────────────── */
     .main-header {
         font-size: 2.5rem;
         font-weight: bold;
-        background: linear-gradient(90deg, #ffd700, #ff8c00, #ffd700);
+        background: linear-gradient(90deg, var(--cc-gold), var(--cc-amber), var(--cc-gold));
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         text-align: center;
         padding: 1rem;
-        text-shadow: 0 0 30px rgba(255,215,0,0.3);
     }
     .task-card {
-        background: rgba(255,255,255,0.06);
+        background: var(--cc-card-bg);
         border-radius: 12px;
         padding: 1rem;
         margin: 0.5rem 0;
-        border-left: 4px solid #ffd700;
-        color: #f3f4f6;
+        border-left: 4px solid var(--cc-gold);
+        color: var(--cc-text);
     }
     .skill-card {
-        background: linear-gradient(135deg, rgba(255,215,0,0.14), rgba(255,140,0,0.06));
+        background: var(--cc-gold-soft);
         border-radius: 10px;
         padding: 0.75rem;
         margin: 0.25rem 0;
-        border: 1px solid rgba(255,215,0,0.35);
-        color: #f3f4f6;
+        border: 1px solid var(--cc-border);
+        color: var(--cc-text);
         cursor: pointer;
-        transition: all 0.3s ease;
+        transition: all 0.2s ease;
     }
     .skill-card:hover {
-        border-color: #ffd700;
-        transform: translateX(5px);
+        border-color: var(--cc-gold);
+        transform: translateX(4px);
     }
     .model-badge {
         display: inline-block;
         padding: 0.25rem 0.75rem;
-        background: rgba(255,215,0,0.18);
+        background: var(--cc-gold-soft);
         border-radius: 15px;
         font-size: 0.8rem;
-        color: #ffd700;
-        border: 1px solid rgba(255,215,0,0.45);
+        color: var(--cc-gold);
+        border: 1px solid var(--cc-border);
     }
     .agent-status {
         padding: 0.5rem 1rem;
         border-radius: 8px;
         margin: 0.5rem 0;
-        color: #f3f4f6;
+        color: var(--cc-text);
     }
-    .agent-running { background: rgba(46,204,113,0.22); border-left: 3px solid #2ecc71; }
-    .agent-idle    { background: rgba(255,215,0,0.14);  border-left: 3px solid #ffd700; }
-    .agent-error   { background: rgba(231,76,60,0.22);  border-left: 3px solid #e74c3c; }
+    .agent-running { background: rgba(22,163,74,0.18);  border-left: 3px solid var(--cc-success); }
+    .agent-idle    { background: var(--cc-gold-soft);   border-left: 3px solid var(--cc-gold); }
+    .agent-error   { background: rgba(220,38,38,0.18);  border-left: 3px solid var(--cc-error); }
     .terminal-output {
-        background: #0d1117;
-        color: #c9d1d9;
+        background: var(--cc-code-bg);
+        color: var(--cc-code-fg);
         font-family: 'Monaco', 'Menlo', monospace;
         font-size: 0.85rem;
         padding: 1rem;
@@ -247,38 +331,30 @@ st.markdown("""
         white-space: pre-wrap;
         max-height: 400px;
         overflow-y: auto;
-        border: 1px solid rgba(255,215,0,0.15);
+        border: 1px solid var(--cc-border);
     }
     .hermes-response {
-        background: linear-gradient(135deg, rgba(255,215,0,0.08), rgba(0,0,0,0.25));
-        border: 1px solid rgba(255,215,0,0.35);
+        background: var(--cc-card-bg2);
+        border: 1px solid var(--cc-border);
         border-radius: 12px;
-        padding: 1.5rem;
+        padding: 1.25rem;
         margin: 1rem 0;
-        color: #f3f4f6;
+        color: var(--cc-text);
     }
     .category-header {
-        color: #ffd700;
+        color: var(--cc-gold);
         font-weight: bold;
         padding: 0.5rem 0;
-        border-bottom: 1px solid rgba(255,215,0,0.45);
+        border-bottom: 1px solid var(--cc-border);
         margin-bottom: 0.5rem;
     }
-    .stat-card {
-        background: rgba(255,255,255,0.05);
-        border-radius: 10px;
-        padding: 1rem;
-        text-align: center;
-        border: 1px solid rgba(255,215,0,0.25);
-        color: #f3f4f6;
-    }
     .cron-job {
-        background: rgba(255,255,255,0.05);
+        background: var(--cc-card-bg);
         border-radius: 8px;
         padding: 0.75rem;
         margin: 0.5rem 0;
-        border-left: 3px solid #3498db;
-        color: #f3f4f6;
+        border-left: 3px solid var(--cc-info);
+        color: var(--cc-text);
     }
 </style>
 """, unsafe_allow_html=True)
@@ -514,12 +590,23 @@ def get_hermes_sessions():
         pass
     return []
 
+CRON_FILE = HERMES_DIR / "cron" / "jobs.json"
+
+
 def get_cron_jobs():
     """Get Hermes cron jobs"""
-    cron_file = HERMES_DIR / "cron" / "jobs.json"
-    if cron_file.exists():
-        return json.loads(cron_file.read_text())
+    if CRON_FILE.exists():
+        try:
+            return json.loads(CRON_FILE.read_text())
+        except Exception:
+            return []
     return []
+
+
+def save_cron_jobs(jobs):
+    """Persist cron jobs to ~/.hermes/cron/jobs.json."""
+    CRON_FILE.parent.mkdir(parents=True, exist_ok=True)
+    CRON_FILE.write_text(json.dumps(jobs, indent=2))
 
 
 def probe_service(url: str, timeout: float = 1.0):
@@ -1141,24 +1228,39 @@ with st.sidebar:
     
     st.markdown("---")
     
-    # Navigation
+    # Navigation. Streamlit gotchas this dance avoids:
+    #   1. You can't pass BOTH `index=` and `key=` while also setting
+    #      st.session_state[key] elsewhere — raises a "default value +
+    #      session_state value" exception that silently kills the run.
+    #   2. You can't write to a widget-keyed state slot AFTER the widget
+    #      has rendered in the same run — also raises an exception.
+    # Solution: key= only (no index=), and route page changes from
+    # buttons through a "_cc_page_pending" slot that we consume at the
+    # top of the sidebar BEFORE the radio renders.
+    PAGES = [
+        "🏠 Dashboard",
+        "💬 Hermes Chat",
+        "🛠️ Skills Browser",
+        "📋 Task Board",
+        "🎤 Capture",
+        "💡 Ideas Lab",
+        "🌐 Website Builder",
+        "🤖 Agent Spawner",
+        "⏰ Cron Jobs",
+        "🧠 Memory",
+        "📊 Sessions",
+        "⚙️ Settings",
+    ]
+    if "cc_page" not in st.session_state:
+        st.session_state.cc_page = PAGES[0]
+    pending = st.session_state.pop("_cc_page_pending", None)
+    if pending in PAGES:
+        st.session_state.cc_page = pending
     page = st.radio(
         "Navigate",
-        [
-            "🏠 Dashboard",
-            "💬 Hermes Chat",
-            "🛠️ Skills Browser",
-            "📋 Task Board",
-            "🎤 Capture",
-            "💡 Ideas Lab",
-            "🌐 Website Builder",
-            "🤖 Agent Spawner",
-            "⏰ Cron Jobs",
-            "🧠 Memory",
-            "📊 Sessions",
-            "⚙️ Settings"
-        ],
-        label_visibility="collapsed"
+        PAGES,
+        key="cc_page",
+        label_visibility="collapsed",
     )
     
     st.markdown("---")
@@ -1207,25 +1309,15 @@ if page == "🏠 Dashboard":
     screenshot_count = len(list(SCREENSHOTS_DIR.glob("*.png")))
     
     with col1:
-        st.markdown('<div class="stat-card">', unsafe_allow_html=True)
         st.metric("📋 Tasks", len([t for t in tasks if t.get('status') == 'pending']))
-        st.markdown('</div>', unsafe_allow_html=True)
     with col2:
-        st.markdown('<div class="stat-card">', unsafe_allow_html=True)
         st.metric("💡 Ideas", len(ideas))
-        st.markdown('</div>', unsafe_allow_html=True)
     with col3:
-        st.markdown('<div class="stat-card">', unsafe_allow_html=True)
         st.metric("🛠️ Skills", len(skills))
-        st.markdown('</div>', unsafe_allow_html=True)
     with col4:
-        st.markdown('<div class="stat-card">', unsafe_allow_html=True)
         st.metric("🎤 Memos", audio_count)
-        st.markdown('</div>', unsafe_allow_html=True)
     with col5:
-        st.markdown('<div class="stat-card">', unsafe_allow_html=True)
         st.metric("📸 Captures", screenshot_count)
-        st.markdown('</div>', unsafe_allow_html=True)
 
     st.markdown("---")
 
@@ -1275,7 +1367,8 @@ if page == "🏠 Dashboard":
         qa_col1, qa_col2 = st.columns(2)
         with qa_col1:
             if st.button("🎤 Voice Memo", use_container_width=True):
-                st.session_state.quick_action = "voice"
+                st.session_state._cc_page_pending = "🎤 Capture"
+                st.rerun()
             if st.button("📸 Screenshot", use_container_width=True):
                 filepath = take_screenshot()
                 st.success(f"Saved: {filepath.name}")
@@ -1283,7 +1376,8 @@ if page == "🏠 Dashboard":
                 st.session_state.quick_action = "task"
         with qa_col2:
             if st.button("💡 New Idea", use_container_width=True):
-                st.session_state.quick_action = "idea"
+                st.session_state._cc_page_pending = "💡 Ideas Lab"
+                st.rerun()
             if st.button("💬 Ask Hermes", use_container_width=True):
                 st.session_state.quick_action = "hermes"
             if st.button("🔄 Refresh", use_container_width=True):
@@ -1543,8 +1637,41 @@ Format as a numbered list."""
                 result = ask_cloud(prompt)
                 st.markdown(result)
 
+                # NOTE: parsing the LLM-generated subtask list back into
+                # structured tasks needs a stable output format. Until that's
+                # wired up, fall back to manual: copy the first line of each
+                # numbered item into a new task.
                 if st.button("📥 Import as Tasks"):
-                    st.info("Feature: Parse and import subtasks")
+                    if not result:
+                        st.warning("Run an analysis first.")
+                    else:
+                        existing = load_tasks()
+                        next_id = max((t['id'] for t in existing), default=0) + 1
+                        added = 0
+                        for line in result.splitlines():
+                            stripped = line.strip()
+                            m = re.match(r"^\d+[\.\)]\s+\*?\*?(.+?)\*?\*?$", stripped)
+                            if not m:
+                                continue
+                            title = re.sub(r"[*_`]", "", m.group(1)).strip()
+                            if not title:
+                                continue
+                            existing.append({
+                                "id": next_id,
+                                "title": title,
+                                "priority": "🟡 Medium",
+                                "status": "pending",
+                                "created": datetime.datetime.now().isoformat(),
+                                "notes": "",
+                            })
+                            next_id += 1
+                            added += 1
+                        if added:
+                            save_tasks(existing)
+                            st.success(f"Imported {added} task(s).")
+                            st.rerun()
+                        else:
+                            st.info("No numbered subtasks found in the analysis.")
     
     # Display tasks in Kanban
     tasks = load_tasks()
@@ -2235,7 +2362,21 @@ Use your full capabilities to:
                             st.rerun()
                 with col2:
                     if st.button("📋 → Tasks", key=f"totask_idea_{idea['id']}"):
-                        st.info("Converting to tasks...")
+                        existing = load_tasks()
+                        new_id = max((t['id'] for t in existing), default=0) + 1
+                        existing.append({
+                            "id": new_id,
+                            "title": f"[Idea] {idea['title']}",
+                            "priority": "🟡 Medium",
+                            "status": "pending",
+                            "created": datetime.datetime.now().isoformat(),
+                            "notes": idea.get('description', ''),
+                        })
+                        save_tasks(existing)
+                        idea['status'] = 'in_progress'
+                        save_ideas(ideas)
+                        st.success(f"Added task #{new_id} from idea.")
+                        st.rerun()
                 with col3:
                     if st.button("🗑️ Delete", key=f"del_idea_{idea['id']}"):
                         ideas.remove(idea)
@@ -2335,7 +2476,26 @@ Provide a detailed analysis and migration plan."""
                     st.markdown(f'<div class="terminal-output">{result["output"]}</div>', unsafe_allow_html=True)
             
             if st.button("🚀 Start Migration"):
-                st.info("This will use Hermes to orchestrate the full migration")
+                if not source_url or not target_store:
+                    st.warning("Need both source URL and target store.")
+                else:
+                    with st.spinner("Hermes orchestrating Shopify migration…"):
+                        prompt = (
+                            f"Use the shopify-site-clone skill to migrate "
+                            f"{source_url} into {target_store}. "
+                            f"Include: products={clone_products}, "
+                            f"theme={clone_theme}, pages={clone_pages}, "
+                            f"blog={clone_blog}. "
+                            f"Report each phase as you go."
+                        )
+                        result = run_hermes(prompt, skill="shopify-site-clone",
+                                            model=CLOUD_TASK_MODEL)
+                    st.markdown(
+                        f'<div class="terminal-output">{result["output"]}</div>',
+                        unsafe_allow_html=True,
+                    )
+                    if result.get('error'):
+                        st.error(result['error'])
         
         else:
             st.markdown(f"#### {site_type}")
@@ -2649,38 +2809,45 @@ elif page == "⏰ Cron Jobs":
     
     with tab1:
         st.markdown("#### Active Cron Jobs")
-        
-        # Try to get cron jobs
-        cron_file = HERMES_DIR / "cron" / "jobs.json"
-        jobs = []
-        if cron_file.exists():
-            try:
-                jobs = json.loads(cron_file.read_text())
-            except:
-                pass
-        
+
+        jobs = get_cron_jobs()
+
         if not jobs:
             st.info("No scheduled jobs. Create one in the 'New Job' tab.")
-        
-        for job in jobs:
+
+        for idx, job in enumerate(jobs):
+            jid = job.get('id', idx)
+            status = job.get('status', 'active')
             st.markdown(f"""
             <div class="cron-job">
                 <strong>{job.get('name', 'Unnamed Job')}</strong><br>
                 <small>Schedule: {job.get('schedule', 'N/A')}</small><br>
-                <small>Status: {job.get('status', 'active')}</small>
+                <small>Status: {status}</small>
             </div>
             """, unsafe_allow_html=True)
-            
+
             col1, col2, col3 = st.columns(3)
             with col1:
-                if st.button("▶️ Run Now", key=f"run_job_{job.get('id', 0)}"):
-                    st.info("Running job...")
+                if st.button("▶️ Run Now", key=f"run_job_{jid}"):
+                    with st.spinner("Running job…"):
+                        result = run_hermes(job.get('prompt', ''))
+                    if result.get('success'):
+                        st.success("Job ran successfully.")
+                        with st.expander("Output", expanded=False):
+                            st.text(result.get('output', '')[:2000])
+                    else:
+                        st.error(result.get('error') or "Job failed.")
             with col2:
-                if st.button("⏸️ Pause", key=f"pause_job_{job.get('id', 0)}"):
-                    st.info("Job paused")
+                pause_label = "▶️ Resume" if status == "paused" else "⏸️ Pause"
+                if st.button(pause_label, key=f"pause_job_{jid}"):
+                    job['status'] = 'active' if status == 'paused' else 'paused'
+                    save_cron_jobs(jobs)
+                    st.rerun()
             with col3:
-                if st.button("🗑️ Delete", key=f"del_job_{job.get('id', 0)}"):
-                    st.info("Job deleted")
+                if st.button("🗑️ Delete", key=f"del_job_{jid}"):
+                    jobs = [j for j in jobs if j.get('id', -1) != jid]
+                    save_cron_jobs(jobs)
+                    st.rerun()
     
     with tab2:
         st.markdown("#### Create New Scheduled Job")
@@ -2715,10 +2882,26 @@ elif page == "⏰ Cron Jobs":
                 schedule = st.text_input("Cron Expression", placeholder="0 9 * * *")
         
         deliver_to = st.selectbox("Deliver Results To", ["local", "telegram", "discord", "email"])
-        
+
         if st.button("📅 Create Job", type="primary"):
-            st.info(f"Creating job with schedule: {schedule}")
-            st.code(f'hermes /cron create "{schedule}" {job_prompt}')
+            if not job_name or not job_prompt:
+                st.warning("Need both a name and a prompt.")
+            else:
+                jobs = get_cron_jobs()
+                new_id = max((j.get('id', 0) for j in jobs), default=0) + 1
+                jobs.append({
+                    "id": new_id,
+                    "name": job_name,
+                    "schedule": schedule,
+                    "prompt": job_prompt,
+                    "deliver": deliver_to,
+                    "status": "active",
+                    "created": datetime.datetime.now().isoformat(),
+                })
+                save_cron_jobs(jobs)
+                st.success(f"Created job #{new_id}: {job_name}")
+                st.code(f'hermes /cron create "{schedule}" {job_prompt}',
+                        language="bash")
 
 # ─────────────────────────────────────────────────────────────────────────────
 # MEMORY
@@ -2743,11 +2926,18 @@ elif page == "🧠 Memory":
         
         st.markdown("---")
         st.markdown("#### Add to Memory")
-        new_memory = st.text_area("New memory entry:", height=100)
+        new_memory = st.text_area("New memory entry:", height=100, key="cc_new_memory")
         if st.button("💾 Save to Memory"):
-            with st.spinner("Adding to memory..."):
-                result = run_hermes(f"Remember this: {new_memory}")
-                st.success("Memory updated!")
+            if not new_memory.strip():
+                st.warning("Type something first.")
+            else:
+                with st.spinner("Adding to memory..."):
+                    result = run_hermes(f"Remember this: {new_memory}")
+                if result.get('success'):
+                    st.success("Memory updated!")
+                    st.rerun()
+                else:
+                    st.error(result.get('error') or "Failed to update memory.")
     
     with tab2:
         st.markdown("#### User Profile")
@@ -2762,11 +2952,18 @@ elif page == "🧠 Memory":
         
         st.markdown("---")
         st.markdown("#### Update Profile")
-        new_profile_info = st.text_area("Add profile information:", height=100)
+        new_profile_info = st.text_area("Add profile information:", height=100, key="cc_new_profile")
         if st.button("👤 Update Profile"):
-            with st.spinner("Updating profile..."):
-                result = run_hermes(f"Update my profile with: {new_profile_info}")
-                st.success("Profile updated!")
+            if not new_profile_info.strip():
+                st.warning("Type something first.")
+            else:
+                with st.spinner("Updating profile..."):
+                    result = run_hermes(f"Update my profile with: {new_profile_info}")
+                if result.get('success'):
+                    st.success("Profile updated!")
+                    st.rerun()
+                else:
+                    st.error(result.get('error') or "Failed to update profile.")
     
     with tab3:
         st.markdown("#### Search Past Sessions")
@@ -2798,18 +2995,42 @@ elif page == "📊 Sessions":
     
     st.markdown("---")
     st.markdown("#### Session Actions")
-    
+
+    def _hermes_cli(args, label):
+        try:
+            result = subprocess.run(
+                ['hermes'] + args, capture_output=True, text=True, timeout=30
+            )
+            if result.returncode == 0:
+                st.success(f"{label} complete.")
+                if result.stdout.strip():
+                    st.code(result.stdout[:4000])
+            else:
+                st.error(f"{label} failed: {result.stderr or result.stdout}")
+        except FileNotFoundError:
+            st.error("`hermes` CLI not found in PATH.")
+        except subprocess.TimeoutExpired:
+            st.error(f"{label} timed out.")
+
     col1, col2 = st.columns(2)
     with col1:
         if st.button("📥 Export Current Session", use_container_width=True):
-            st.info("Export functionality")
+            export_path = EXPORTS_DIR / f"session_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+            try:
+                if sessions_db.exists():
+                    export_path.write_bytes(sessions_db.read_bytes())
+                    st.success(f"Exported to: {export_path}")
+                else:
+                    st.warning("No sessions database to export.")
+            except Exception as e:
+                st.error(f"Export failed: {e}")
         if st.button("🔄 Resume Last Session", use_container_width=True):
-            st.code("hermes /resume")
+            _hermes_cli(['/resume'], "Resume")
     with col2:
         if st.button("🗑️ Clear Session", use_container_width=True):
-            st.code("hermes /reset")
+            _hermes_cli(['/reset'], "Reset")
         if st.button("📊 Session Stats", use_container_width=True):
-            st.info("Stats functionality")
+            _hermes_cli(['session', 'stats'], "Stats")
 
 # ─────────────────────────────────────────────────────────────────────────────
 # SETTINGS
@@ -2841,7 +3062,20 @@ elif page == "⚙️ Settings":
         
         st.markdown("---")
         st.markdown("#### Local Ollama Models")
-        
+
+        def _set_default_model(provider_model: str):
+            """Persist a new default model into Hermes config."""
+            cfg = get_hermes_config() or {}
+            cfg.setdefault('model', {})
+            if '/' in provider_model:
+                provider, model_name = provider_model.split('/', 1)
+                cfg['model']['provider'] = provider
+                cfg['model']['default'] = model_name
+            else:
+                cfg['model']['default'] = provider_model
+            save_hermes_config(cfg)
+            st.success(f"Default model set to {provider_model}")
+
         models = get_ollama_models()
         for m in models:
             col1, col2 = st.columns([3, 1])
@@ -2849,11 +3083,12 @@ elif page == "⚙️ Settings":
                 st.markdown(f"• `{m}`")
             with col2:
                 if st.button("Set Default", key=f"setdef_{m}"):
-                    st.code(f"hermes /model ollama/{m}")
-        
+                    _set_default_model(f"ollama/{m}")
+                    st.rerun()
+
         st.markdown("---")
         st.markdown("#### Quick Model Switch")
-        
+
         presets = {
             "🏠 Local Fast (gemma4:31b)": "ollama/gemma4:31b",
             "🏠 Local Power (llama3.3)": "ollama/llama3.3:latest",
@@ -2861,12 +3096,13 @@ elif page == "⚙️ Settings":
             "☁️ Claude Opus": "anthropic/claude-opus-4.7",
             "☁️ Claude Sonnet": "anthropic/claude-sonnet-4.6",
             "☁️ Claude Haiku": "anthropic/claude-haiku-4.5",
-            "☁️ Gemini Pro": "google/gemini-2.5-pro"
+            "☁️ Gemini Pro": "google/gemini-2.5-pro",
         }
-        
+
         for name, model in presets.items():
             if st.button(name, key=f"preset_{model}", use_container_width=True):
-                st.code(f"hermes /model {model}")
+                _set_default_model(model)
+                st.rerun()
     
     with tab2:
         st.markdown("#### Hermes Configuration")
@@ -2878,14 +3114,29 @@ elif page == "⚙️ Settings":
         
         st.markdown("---")
         st.markdown("#### Key Settings")
-        
-        # Smart routing
-        smart_routing = config.get('smart_model_routing', {})
-        st.checkbox("Smart Model Routing", value=smart_routing.get('enabled', False), key="smart_routing")
-        
-        # Compression
-        compression = config.get('compression', {})
-        st.checkbox("Context Compression", value=compression.get('enabled', True), key="compression")
+
+        smart_routing = config.get('smart_model_routing', {}) or {}
+        compression = config.get('compression', {}) or {}
+
+        new_smart = st.checkbox(
+            "Smart Model Routing",
+            value=bool(smart_routing.get('enabled', False)),
+            key="cc_smart_routing",
+        )
+        new_compress = st.checkbox(
+            "Context Compression",
+            value=bool(compression.get('enabled', True)),
+            key="cc_compression",
+        )
+
+        if (new_smart != bool(smart_routing.get('enabled', False))
+                or new_compress != bool(compression.get('enabled', True))):
+            if st.button("💾 Save Settings", type="primary", key="save_hermes_settings"):
+                config.setdefault('smart_model_routing', {})['enabled'] = new_smart
+                config.setdefault('compression', {})['enabled'] = new_compress
+                save_hermes_config(config)
+                st.success("Hermes config updated.")
+                st.rerun()
         
         # STT
         stt = config.get('stt', {})

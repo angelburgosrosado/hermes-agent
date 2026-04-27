@@ -1,0 +1,159 @@
+.placeholder-shadow-blocks .thumbnail-list__item:before {padding-bottom:0 !important;}
+.placeholder-shadow-blocks .product-form__input input[type=radio]:checked+.swatch-element label {border:none;}
+.placeholder-shadow-blocks .product__info-container #add-frequently-bought {
+  color: #f1f1f1;
+    background: #f1f1f1;}
+.placeholder-shadow-blocks .product__title,
+.placeholder-shadow-blocks .product__media.media media--transparent.gradient,
+.placeholder-shadow-blocks .thumbnail-list__item .thumbnail,
+.placeholder-shadow-blocks .product__info-container .swatch-variant-image,
+.placeholder-shadow-blocks .price__container,
+.placeholder-shadow-blocks .social-proof-sales,
+.placeholder-shadow-blocks .product__text,
+.placeholder-shadow-blocks .product__info-container p,
+.placeholder-shadow-blocks .product__info-container .form__label,
+.placeholder-shadow-blocks .product__info-container .html-sections-product p,
+.placeholder-shadow-blocks .product__info-container .product-form__input  input[type="radio"] + label,
+.placeholder-shadow-blocks .product__info-container .swatch-variant-color,
+.placeholder-shadow-blocks .product__info-container .size-chart,
+.placeholder-shadow-blocks .product__info-container .dT_VProdWishList,
+.placeholder-shadow-blocks .product__info-container .dT_VProdCompareList,
+.placeholder-shadow-blocks .product__info-container .product__pickup-availabilities,
+.placeholder-shadow-blocks .product__info-container .shopify-payment-button,
+.placeholder-shadow-blocks .product__info-container .product-form__input.product-form__quantity,
+.placeholder-shadow-blocks .product__info-container .product-form__input.product-form__quantity .quantity,
+.placeholder-shadow-blocks .product__info-container button.product-form__submit,
+.placeholder-shadow-blocks .product__info-container .list-payment__item,
+.placeholder-shadow-blocks .product__info-container .dt-sc-enquiry-form,
+.placeholder-shadow-blocks .product__info-container label.deal-lable.product-label,
+.placeholder-shadow-blocks .product__info-container .product-deal-count .deal-clock .days,
+.placeholder-shadow-blocks .product__info-container .product-deal-count .deal-clock .hours,
+.placeholder-shadow-blocks .product__info-container .product-deal-count .deal-clock .minutes,
+.placeholder-shadow-blocks .product__info-container .product-deal-count .deal-clock .seconds,
+.placeholder-shadow-blocks .product__info-container .product-attributes .product-label,
+.placeholder-shadow-blocks .product__info-container .product-fbt__media,
+.placeholder-shadow-blocks .product__info-container  .rating-star,
+.placeholder-shadow-blocks .product__info-container .adv-product-list li,
+.placeholder-shadow-blocks .product__info-container ul.custom-select li,
+.placeholder-shadow-blocks .product__info-container .qty-controls,
+.placeholder-shadow-blocks .product__info-container #add-frequently-bought,
+.placeholder-shadow-blocks .product__info-container #subtotal-value,
+.placeholder-shadow-blocks .product__info-container .share-button__button,
+.placeholder-shadow-blocks .product__info-container .product-attributes-value
+{
+  position: relative;
+}
+
+.placeholder-shadow-blocks .product__info-container p:before,
+.placeholder-shadow-blocks .product__info-container .list-payment__item:before,
+.placeholder-shadow-blocks .product__info-container  .product-form__input.product-form__quantity .quantity:before,
+.placeholder-shadow-blocks .product__info-container .product-form__input.product-form__quantity:before,
+.placeholder-shadow-blocks .product__title:before,
+.placeholder-shadow-blocks .product__media.media.media--transparent.gradient:before,
+.placeholder-shadow-blocks .thumbnail-list__item .thumbnail:before,
+.placeholder-shadow-blocks .product__info-container .swatch-variant-image:before,
+.placeholder-shadow-blocks .price__container:before,
+.placeholder-shadow-blocks .social-proof-sales:before,
+.placeholder-shadow-blocks .product__text:before,
+.placeholder-shadow-blocks .product__info-container .form__label:before,
+.placeholder-shadow-blocks .product__info-container .product__pickup-availabilities:before,
+.placeholder-shadow-blocks .product__info-container .swatch-variant-color:before,
+.placeholder-shadow-blocks .product__info-container .product-form__input input[type="radio"] + label:before,
+.placeholder-shadow-blocks .product__info-container .size-chart:before,
+.placeholder-shadow-blocks .product__info-container .dT_VProdWishList:before,
+.placeholder-shadow-blocks .product__info-container .dT_VProdCompareList:before,
+.placeholder-shadow-blocks .product__info-container .html-sections-product  p:before,
+.placeholder-shadow-blocks .product__info-container .shopify-payment-button:before,
+.placeholder-shadow-blocks .product__info-container button.product-form__submit:before,
+.placeholder-shadow-blocks .product__info-container .dt-sc-enquiry-form:before,
+.placeholder-shadow-blocks .product__info-container label.deal-lable.product-label:before,
+.placeholder-shadow-blocks .product__info-container .product-deal-count .deal-clock .days:before,
+.placeholder-shadow-blocks .product__info-container .product-deal-count .deal-clock .hours:before,
+.placeholder-shadow-blocks .product__info-container .product-deal-count .deal-clock .minutes:before,
+.placeholder-shadow-blocks .product__info-container .product-deal-count .deal-clock .seconds:before,
+.placeholder-shadow-blocks .product__info-container .product-attributes .product-label:before,
+.placeholder-shadow-blocks .product__info-container .product-fbt__media:before,
+.placeholder-shadow-blocks .product__info-container .rating-star:before,
+.placeholder-shadow-blocks .product__info-container .adv-product-list li:before,
+.placeholder-shadow-blocks .product__info-container ul.custom-select li:before,
+.placeholder-shadow-blocks .product__info-container #add-frequently-bought:before,
+.placeholder-shadow-blocks .product__info-container #subtotal-value:before,
+.placeholder-shadow-blocks .product__info-container .share-button__button:before,
+.placeholder-shadow-blocks .product__info-container .product-attributes-value:before,
+.placeholder-shadow-blocks .product__info-container .qty-controls:before{
+  content: "";
+  position: absolute;
+  inset: -2px !important;
+  top: -2px !important;
+  left: -2px !important;
+  right: -2px !important;
+  bottom: -2px !important;
+  z-index: 1;
+  border-radius: 3px;
+  box-shadow: none !important;
+  border: none !important;
+  opacity: 1 !important;
+  background: #f5f5f5;
+}
+.placeholder-shadow-blocks .product__info-container p:after,
+.placeholder-shadow-blocks .product__info-container .list-payment__item:after,
+.placeholder-shadow-blocks .product__info-container  .product-form__input.product-form__quantity .quantity:after,
+.placeholder-shadow-blocks .product__info-container .product-form__input.product-form__quantity:after,
+.placeholder-shadow-blocks .product__title:after,
+.placeholder-shadow-blocks .product__media.media.media--transparent.gradient:after,
+.placeholder-shadow-blocks .thumbnail-list__item .thumbnail:after,
+.placeholder-shadow-blocks .product__info-container .swatch-variant-image:after,
+.placeholder-shadow-blocks .price__container:after,
+.placeholder-shadow-blocks .social-proof-sales:after,
+.placeholder-shadow-blocks .product__text:after,
+.placeholder-shadow-blocks .product__info-container .form__label:after,
+.placeholder-shadow-blocks .product__info-container .product__pickup-availabilities:after,
+.placeholder-shadow-blocks .product__info-container .swatch-variant-color:after,
+.placeholder-shadow-blocks .product__info-container .product-form__input input[type="radio"] + label:after,
+.placeholder-shadow-blocks .product__info-container .size-chart:after,
+.placeholder-shadow-blocks .product__info-container .dT_VProdWishList:after,
+.placeholder-shadow-blocks .product__info-container .dT_VProdCompareList:after,
+.placeholder-shadow-blocks .product__info-container .html-sections-product  p:after,
+.placeholder-shadow-blocks .product__info-container .shopify-payment-button:after,
+.placeholder-shadow-blocks .product__info-container button.product-form__submit:after,
+.placeholder-shadow-blocks .product__info-container .dt-sc-enquiry-form:after,
+.placeholder-shadow-blocks .product__info-container label.deal-lable.product-label:after,
+.placeholder-shadow-blocks .product__info-container .product-deal-count .deal-clock .days:after,
+.placeholder-shadow-blocks .product__info-container .product-deal-count .deal-clock .hours:after,
+.placeholder-shadow-blocks .product__info-container .product-deal-count .deal-clock .minutes:after,
+.placeholder-shadow-blocks .product__info-container .product-deal-count .deal-clock .seconds:after,
+.placeholder-shadow-blocks .product__info-container .product-attributes .product-label:after,
+.placeholder-shadow-blocks .product__info-container .product-fbt__media:after,
+.placeholder-shadow-blocks .product__info-container .rating-star:after,
+.placeholder-shadow-blocks .product__info-container .adv-product-list li:after,
+.placeholder-shadow-blocks .product__info-container ul.custom-select li:after,
+.placeholder-shadow-blocks .product__info-container #add-frequently-bought:after,
+.placeholder-shadow-blocks .product__info-container #subtotal-value:after,
+.placeholder-shadow-blocks .product__info-container .share-button__button:after,
+.placeholder-shadow-blocks .product__info-container .product-attributes-value:after,
+.placeholder-shadow-blocks .product__info-container .qty-controls:after
+{
+  content: "";
+  position: absolute;
+  inset: -2px !important;
+  top: -2px !important;
+  left: -2px !important;
+  right: -2px !important;
+  bottom: -2px !important;
+  border-radius: 3px;
+  z-index: 2;
+  box-shadow: none !important;
+  border: none !important;
+  opacity: 1 !important;
+background-image: linear-gradient(90deg,rgba(22,24,35,0) 0,rgba(22,24,35,.04) 50%,rgba(22,24,35,0) 100%);
+    -webkit-background-size: 200% 100%;
+    background-size: 200% 100%;
+    background-repeat: no-repeat;
+    -webkit-animation: 1.5s cubic-bezier(0,0,1,1) infinite animation-loading-images;
+    animation: 1.5s cubic-bezier(0,0,1,1) infinite animation-loading-images;
+}
+
+@-webkit-keyframes animation-loading-images{0%{background-position-x:200%;}100%{background-position-x:-150%}}
+@keyframes animation-loading-images{0%{background-position-x:200%}100%{background-position-x:-150%}}
+
+.placeholder-shadow-blocks .collection .price__container:before,.placeholder-shadow-blocks .collection .price__container:after{content: inherit;}

@@ -1,0 +1,33 @@
+{% layout none %}
+
+{%- liquid
+assign current_variant = product.selected_or_first_available_variant
+assign compare_at_price = current_variant.compare_at_price
+assign price = current_variant.price
+   
+if current_variant.title
+  assign compare_at_price = current_variant.compare_at_price
+  assign price = current_variant.price
+  assign available = current_variant.available
+else
+  assign compare_at_price = 1999
+  assign price = 1999
+  assign available = true
+endif
+
+assign money_price = price | money
+
+assign price = current_variant.price
+assign money_price = price | money
+assign product_image = ''
+  for media in product.media limit: 1
+        case media.media_type
+            when 'image'
+                   assign product_image = media.src | image_url: width: 750
+            endcase
+    endfor    
+-%}
+
+{% assign a_variants   = product.selected_or_first_available_variant %}
+
+{{ product.id }}~~{{  product.title}}~~{{product.handle}}~~{{product_image}}~~{{product.vendor}}~~{{ product.type}}~~{{money_price}}~~{{product.price_min}}~~{{product.price_max}}~~{{product.available}}~~{{product.price_varies}}~~{{a_variants.id}}~~{{a_variants.title}}~~{{a_variants.sku}}~~{{product.description | strip_html | truncatewords: 20}}

@@ -1,0 +1,72 @@
+{% comment %} snippets/leafywell-qa.liquid {% endcomment %}
+<div id="lw-qa-widget"
+  data-product="{{ product.handle }}"
+  data-proxy="https://your-vercel-app.vercel.app/api/chat">
+
+  <div id="lw-messages">
+    <div class="lw-bubble lw-ai">
+      Hi! Ask me anything about
+      <strong>{{ product.title }}</strong>.
+    </div>
+  </div>
+
+  <div id="lw-chips">
+    {%- for benefit in product.metafields.leafywell.key_benefits.value -%}
+      <button class="lw-chip"
+        onclick="lwAsk('Tell me about: {{ benefit }}')">
+        {{ benefit | truncate: 40 }}
+      </button>
+    {%- endfor -%}
+  </div>
+
+  <div class="lw-input-row">
+    <input type="text" id="lw-input"
+      placeholder="Ask about ingredients, benefits..."
+      onkeydown="if(event.key==='Enter')lwSend()">
+    <button onclick="lwSend()">Ask</button>
+  </div>
+</div>
+
+<script>
+const LW_PROXY = document.getElementById('lw-qa-widget')
+  .dataset.proxy;
+const LW_HANDLE = document.getElementById('lw-qa-widget')
+  .dataset.product;
+const lwHistory = [];
+
+async function lwSend() {
+  const input = document.getElementById('lw-input');
+  const q = input.value.trim();
+  if (!q) return;
+  input.value = '';
+  lwAddMsg('user', q);
+  lwHistory.push({ role:'user', content: q });
+
+  const res = await fetch(LW_PROXY, {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({
+      question: q,
+      productHandle: LW_HANDLE,
+      history: lwHistory.slice(-6)
+    })
+  });
+  const { answer } = await res.json();
+  lwHistory.push({ role:'assistant', content: answer });
+  lwAddMsg('ai', answer);
+}
+
+function lwAsk(q) {
+  document.getElementById('lw-input').value = q;
+  lwSend();
+}
+
+function lwAddMsg(role, text) {
+  const msgs = document.getElementById('lw-messages');
+  const d = document.createElement('div');
+  d.className = 'lw-bubble lw-' + role;
+  d.textContent = text;
+  msgs.appendChild(d);
+  msgs.scrollTop = 99999;
+}
+</script>

@@ -1,0 +1,18 @@
+<div class="search-collection-tags-with-{{ headerType }} {{ line }}">
+         {% unless settings.search_tags == blank %}
+        {% assign searchTags = settings.search_tags | split: ',' %}
+        <ul class="search-tags">
+          <li>{{ 'general.search.category_title' | t }}</li>
+          {% for tag in searchTags %}
+          <li class="tag-item">
+            <a  href="/search?q={{ tag | handle }}&product=product" title="{{ tag }}">              
+              <span>{{ tag }}</span>
+            </a>
+          </li> 
+          {% endfor %}
+        </ul>
+        {% endunless %}
+        
+</div>
+
+  

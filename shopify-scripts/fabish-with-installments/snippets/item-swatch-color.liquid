@@ -1,0 +1,89 @@
+{% if settings.display_color_variant %}
+{%- assign file_extension = 'png' -%}
+{% for option in product.options %}
+{% assign downcased_option = option | downcase %}    
+{% if downcased_option contains 'color' or downcased_option contains 'colour' %}
+{% assign optionCount = 0 %}
+{% assign optionControl = 4 %}
+{%- assign option_index = forloop.index0 -%}
+{%- assign values = '' -%}
+
+<ul class="variant-option-color">
+  {% for variant in product.variants %}  
+  {%- assign value = variant.options[option_index] -%}
+  {% unless values contains value %}
+   
+  {%- assign values = values | join: ',' -%}
+  {%- assign values = values | append: ',' | append: value -%}
+  {%- assign values = values | split: ',' -%}      
+   {%- capture colorCODE -%}
+    {%- if variant.image != null -%}
+    {%- assign value =   value | replace: ' ' , '-'  -%}   
+    bg-color-{{- value -}}   
+    {%- endif -%}
+    {%- endcapture -%}
+ 
+    {%- liquid
+    assign colorName = value | handle            
+    assign colorFile = value | handle | append: '.' | append: file_extension
+    assign colorFileURL = colorFile | file_img_url: '50x50' | prepend: 'https:' | split: '?' | first                
+    -%}
+
+  {% if optionCount < 4 %}      
+  <li class="color-values">       
+    <a data-href="{{ variant.url | within: collection }}" class="swatch swatch-element {% if forloop.first %} active{% endif %} color {{ colorCODE | downcase -}}" data-swatch-meta="name-{{ downcased_option }}_{{ value | replace: ' ', '_' | downcase }}">
+      <tooltip class="tooltip">{{value | replace: '-', ' '}}</tooltip>
+      <span
+       {%- if variant.image %} 
+        data-image="{{ variant.image | image_url: width: 460 }}"
+        {% else %}
+        data-image="{{ product.featured_media | image_url: width: 360 }}"{% endif %}           
+        {%- if variant.image != blank -%}
+        style="background-size: cover;background-color: {{- colorName -}};background-image: url('{{ variant.image | image_url: width: 460 }}'); background-repeat: no-repeat;"        
+        {%- else -%}
+        style="background-size: cover;background-color: {{- colorName -}};background-image: url({{ colorFileURL }}); background-repeat: no-repeat;"
+        {%- endif -%}  
+        data-id="{{- variant.id -}}"
+        data-variant-title-id="color" data-variant-item="{{ value | replace: ' ', '-' | downcase }}"  data-variant-title="{{ variant.title }}"></span>
+    </a>          
+    {% assign optionCount = optionCount | plus : 1 %}
+  </li>
+  {% else %}    
+  <li class="color-values show-on-click" style="display:none">
+    <a data-href="{{ variant.url | within: collection }}" class="swatch {% if forloop.first %} active{% endif %} color {{ colorCODE | downcase -}}" data-swatch-meta="name-{{ downcased_option }}_{{ value | replace: ' ', '_' | downcase }}">
+     <tooltip class="tooltip">{{value | replace: '-', ' '}}</tooltip>
+            <span
+           {%- if variant.image %} 
+        data-image="{{ variant.image | image_url: width: 460 }}"
+        {% else %}
+        data-image="{{ product.featured_media | image_url: width: 360 }}"{% endif %}           
+        {%- if variant.image != blank -%}
+        style="background-size: cover;background-color: {{- colorName -}};background-image: url('{{ variant.image | image_url: width: 460 }}'); background-repeat: no-repeat;"        
+        {%- else -%}
+        style="background-size: cover;background-color: {{- colorName -}};background-image: url({{ colorFileURL }}); background-repeat: no-repeat;"
+        {%- endif -%}   
+            data-ids="{{- variant.id -}}"
+            data-variant-title-id="color" data-variant-item="{{ value | replace: ' ', '-' | downcase }}"  data-variant-title="{{ variant.title }}"></span>
+    </a>  
+  </li>
+  {% assign optionCount = optionCount | plus : 1 %}
+  {% endif %}
+
+  {% endunless %}
+  {% endfor %}
+
+  {% for itemOption in product.options_with_values %}  
+  {% assign  lowercase_value = itemOption.name | downcase %}    
+  {% if lowercase_value contains 'color' %}  
+  {% if itemOption.values.size > 4 %}
+  <li class="color-values-plus">
+    <span><a href="#">+{{ itemOption.values.size | minus : 4 }}</a></span>
+  </li>
+  {% endif %}
+  {% endif %}
+  {% endfor %}
+
+</ul>
+{% endif %}
+{% endfor %}
+{% endif %}

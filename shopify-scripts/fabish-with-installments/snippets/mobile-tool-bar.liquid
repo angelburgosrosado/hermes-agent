@@ -1,0 +1,75 @@
+<div class="mobile-toolbar__icons"> 
+  <div class="mobile-toolbar">
+    
+   <a href="/" class="header__icon header__icon--home link">
+   <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+   <path d="M24.1081 10.9814V25.1061C24.1081 25.9041 23.4618 26.5504 22.6638 26.5504H19.7754C18.9774 26.5504 18.3311 25.9041 18.3311 25.1061V22.2177C18.3311 20.6218 17.0385 19.3292 15.4426 19.3292H12.5541C10.9582 19.3292 9.66565 20.6218 9.66565 22.2177V25.1061C9.66565 25.9041 9.01935 26.5504 8.2214 26.5504H5.33292C4.53497 26.5504 3.88867 25.9041 3.88867 25.1061V10.9814" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+   <path d="M1 13.5521L12.0809 2.79614C13.175 1.73462 14.825 1.73462 15.919 2.79614L27 13.5521" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+   </svg>
+     <span class="icon-text">{{ "general.mobile_tool_bar.home" | t }}</span>
+   </a>
+   <a href="{{ routes.collections_url }}" class="header__icon header__icon--shop link">
+  <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M26.9964 14.9982H1L2.04343 8.74467C2.27451 7.35097 3.4805 6.33276 4.89225 6.33276H23.1078C24.5195 6.33276 25.7255 7.35459 25.9566 8.74467L27 14.9982H26.9964Z" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M2.44385 2H25.5517" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M2.44385 14.9982V22.2194C2.44385 23.8153 3.73645 25.1079 5.33233 25.1079H13.9978C15.5937 25.1079 16.8863 23.8153 16.8863 22.2194V14.9982" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M25.5522 14.9982V25.1079" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>  
+  <span class="icon-text">{{ "general.mobile_tool_bar.shop" | t }}</span>
+   </a>
+  
+  <a href="/pages/wishlist" class="header__icon header__icon--wishlist link">
+               <div class="icon-with-count"> 
+               <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M14.0049 7.14229C14.2049 6.89288 16.9785 3.53895 20.5819 4.13951C23.3687 4.60224 25.0053 7.15217 25.5453 8.44846C27.3053 12.6721 23.8485 17.9393 17.0384 23.8629C15.295 25.379 12.5916 25.379 10.8482 23.8629C4.06472 17.959 0.704572 12.7639 2.46129 8.54032C3.0013 7.24403 4.63806 4.5333 7.42481 4.07057C11.0282 3.47001 13.8016 6.89288 14.0017 7.14558L14.0049 7.14229Z" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+               </svg>
+
+                <mobile-dtx-wish-count class="mobile-dtxc-wishlist-count cart-count-bubble" grid_type="wishList" count="0">
+                  <div class="grid-count-bubble">
+                    <span aria-hidden="true"></span>
+                  </div>
+                </mobile-dtx-wish-count>
+               </div>
+                <span class="icon-text">{{ 'products.product.wishlist' | t }}</span>
+              </a>
+
+              <a href="{%- if customer -%}{{ routes.account_url }}{%- else -%}{{ routes.account_login_url }}{%- endif -%}" class="header__icon link ">
+                {% render 'icon-account' %}
+               <span class="icon-text"> {%- liquid
+                  if customer
+                    echo 'customer.account_fallback' | t
+                  else
+                    echo 'customer.log_in' | t
+                  endif
+                -%}</span>
+              </a>
+               
+   </div>
+</div>
+<style>
+  .mobile-toolbar__icons  {display:flex;justify-content:center;}
+  .mobile-toolbar__icons svg {width:16px;height:16px;}
+  .mobile-toolbar__icons {
+    display: flex;
+    justify-content: center;
+    position: sticky;
+    width: 100%;
+    bottom: 0;
+    background: var(--gradient-base-background-1);
+    z-index: 2;
+    box-shadow: 0 0 10px #1a1a1a26;
+}
+  .mobile-toolbar__icons .header__icon {height: 100%;width: auto;margin:0!important;display: flex;
+    flex-direction: column;
+    text-transform: capitalize;padding:14px 0;}
+  .mobile-toolbar__icons .mobile-toolbar{padding: 0;display: grid;grid-template-columns: repeat(4, 1fr);width: 100%;}
+  .mobile-toolbar__icons .mobile-toolbar .header__icon .icon-text{line-height:14px;font-size:14px;font-weight:400;margin-top:7px;height: fit-content;}
+  .mobile-toolbar__icons .header__icon:not(:last-child){border-right:1px solid rgba(var(--color-base-accent-1), 0.2);}
+  .mobile-toolbar__icons .header__icon .mobile-dtxc-wishlist-count.cart-count-bubble{top: -2px;right: -7px;}
+  .mobile-toolbar__icons .header__icon .icon-with-count{position:relative;display: flex;}
+  .mega-full-width-active.overflow-hidden-tablet .mobile-toolbar__icons {z-index: 1;}
+  @media screen and (min-width: 750px) {
+    .mobile-toolbar__icons {display:none;}
+  }
+  
+</style>

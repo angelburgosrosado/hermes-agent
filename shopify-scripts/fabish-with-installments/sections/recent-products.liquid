@@ -1,0 +1,112 @@
+<div class="page-width  recent-view-container" >
+    <h5 class="product-heading h5" id="recently">{{ section.settings.heading | escape }}  {% render 'icon-caret' %}</h5>
+    <div class="view-product">
+      <div class="recently-viewed " role="list" id="recently-viewed-products">
+        <div class="recently-view-product-lists">
+          <!-- Recently viewed products will appear here -->
+        </div>
+      </div>
+    </div>
+</div>
+
+<script>
+function DT_rvP() {
+    let e = {
+            productTitle: "{{ product.title }}",
+            productImg: "{{ product.featured_media | image_url: width: 533 }}",
+            imgWidth: "{{ product.featured_media.width }}",
+            imgHeight: "{{ product.featured_media.height }}",
+            productPrice: "{{ product.price | money_with_currency }}",
+            productUrl: "{{ product.url }}",
+            productImageAltText: "{{product.featured_media.alt | escape }}"
+        },
+        t = [],
+        c, d, i;
+    t.push(e);
+    let r = e.productTitle,
+        l = JSON.stringify(t),
+        u = localStorage.getItem("recentlyViewedProduct");
+    if (null === u) localStorage.setItem("recentlyViewedProduct", l);
+    else if (u) {
+        let o = localStorage.getItem("recentlyViewedProduct"),
+            n = (o.match(/productTitle/g) || []).length,
+            s = o.includes(r);
+        n < 3 && !1 == s ? (i = JSON.stringify(d = (c = JSON.parse(o)).concat(t)), localStorage.setItem("recentlyViewedProduct", i)) : n >= 3 && !1 == s && ((c = JSON.parse(o)).shift(), d = JSON.stringify(d = c.concat(t)), localStorage.setItem("recentlyViewedProduct", d))
+    }
+}
+DT_rvP();
+const localViewed = localStorage.recentlyViewedProduct;
+
+function DT_GrvP() {
+    let e = JSON.parse(localStorage.getItem("recentlyViewedProduct")),
+        t = [];
+    e.map(e => {
+        t.unshift(`
+    
+     <div class="recently-product product">
+         <div class="product-images">
+          <a class="full-unstyled-link" href="${e.productUrl}">
+    		  <img class="motion-reduce" src="${e.productImg}" width="${e.imgWidth}" height="${e.imgHeight}"  loading="lazy" alt="${e.productImageAltText}"/>
+          </a> 
+         </div>
+       <div class="card__information_content">
+       <a class="full-unstyled-link" href="${e.productUrl}">
+       <h5 class="product_heading"> ${e.productTitle}</h5>
+        <div class="price-item price-item--regular"> ${e.productPrice}</div>
+       </a> 
+       </div>
+    </div>
+   
+   `)
+    });
+    let c = `${t.join("")}`,
+        d = document.getElementsByClassName("recently-view-product-lists");
+    d[0].innerHTML = c
+}
+document.addEventListener("DOMContentLoaded", function(e) {
+    DT_GrvP()
+});
+
+</script>
+{%- style -%}
+  .recently-product{position:relative;}
+  #recently-viewed-products {display:none;}
+  .recently-view-product-lists{display:flex; justify-content: space-between; flex-direction: column;}
+  .view-product h5.product_heading{margin:0;  font-size: 1.4rem; transition:all 0.3s linear;}
+    .view-product h5.product_heading:hover{color:rgba(var(--color-base-outline-button-labels));}
+  #recently { font-size: 1.2rem; font-weight:600; position: relative; line-height: normal; display: flex; align-items: center; width: 100%; justify-content: center; margin: 0; padding: 0; font-family: var(--font-body-family);}
+  .recent-view-container {  background:var(--gradient-base-background-2);  position: fixed;  cursor: pointer;  right: 15px;  width: 100px;  top: 165px;  text-align: center;  z-index: 1;  padding: 15px;  box-shadow:0px 0px 1px 1px var(--gradient-base-background-1);  display: flex;  flex-wrap: wrap;  justify-content: center;  transition: all cubic-bezier(.47,1.21,.47,1.21) .3s; 
+   -webkit-transition: all cubic-bezier(.47,1.21,.47,1.21) .3s; opacity:1;}
+  .recent-view-container:hover{opacity:1;} 
+  .recently-product {  line-height: normal;  font-size: 16px;  margin-top: 10px;  width: 100%;}
+  .recently-product .card__information_content > a { position: absolute; opacity: 0; visibility: hidden; left: auto; width: 200px; top: auto; bottom: 0; padding: 10px; transition: all cubic-bezier(.47,1.21,.47,1.21) .3s;     transition: all 0.3s linear;
+    -webkit-transition: all cubic-bezier(.47,1.21,.47,1.21) .3s; display: flex; justify-content: center; flex-wrap: wrap; align-items: center; background-color: var(--gradient-base-background-2); left: -180px; box-shadow:rgb(99 99 99 / 20%) 0px 2px 8px 0px;}
+  .recently-view-product-lists .recently-product:hover .card__information_content > a { left: -205px; opacity: 1; visibility: visible;}
+  .product-images{ margin: 0; position: relative; width: 100%;}
+  .recently-product product .card__information_content{ padding-top: 15px; margin-bottom: -15px;}
+  .recently-view-product-lists .recently-product:hover .product-images > a { box-shadow: 0 0 0 2px var(--gradient-base-background-2) inset;}
+  .recently-view-product-lists .recently-product .product-images > a { transition: all var(--duration-default) linear; -webkit-transition:  all var(--duration-default) linear; width: 100%; height: auto; box-shadow: 0 0 0 2px transparent inset; display: flex;}
+  .product-heading svg { width: 11px; height: 11px; margin-bottom: -2px; margin-left: 8px; font-weight: 800;}
+ .recently-view-product-lists .recently-product  .card__information_content > a .price-item { font-size: 1.2rem; margin-top: 5px; display: block; width: 100%; font-weight: bold;}
+ .recently-view-product-lists .recently-product .product-images > a img { z-index: -1; position:relative;}
+ .recently-view-product-lists .recently-product  .card__information_content h3.product_heading.h5 { margin: 0;}
+/* .card__information_content > a:after { content: ""; width: 10px; height: 10px; position: absolute; background:var(--gradient-base-background-1); right: -7px; z-index: -1; margin: 0 auto; transform: rotate(45deg); box-shadow: 0px 0px 4px 0px var(--gradient-base-accent-2);}
+ */
+@media screen and (max-width: 750px) {  
+  .recent-view-container{display:none;}
+}
+{%- endstyle -%}
+
+{% schema %}
+  {
+    "name": "Recent Products",
+    "settings": [
+      {
+      "type": "text",
+      "id": "heading",
+      "default": "Recently Viewed",
+      "label": "Title"
+    }
+    ]
+  }
+{% endschema %}

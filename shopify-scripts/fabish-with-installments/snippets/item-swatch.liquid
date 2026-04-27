@@ -1,0 +1,145 @@
+{% if settings.display_color_variant %}
+{%- for option in product.options_with_values -%}
+  {%- liquid
+   assign option_index = forloop.index0
+   assign option_name_small = option.name | downcase
+   assign compare_color_label = settings.map_color_option | handleize 
+-%}
+   {% if option.name == 'Color' or option.name == 'color' or option.name == 'Colour' or option.name == 'colour' %} 
+    <ul class="variant-option-color list-unstyled list-group  list-group-horizontal{% if settings.product_card_column_alignment == 'center' %} justify-content-center {% else %} justify-content-start {% endif %}">
+      {%- assign processed_values = '' -%}
+
+      {%- for variant in product.variants -%}
+        {%- assign variant_value = variant.options[option_index] -%}
+        {%- unless processed_values contains variant_value -%}
+          {%- assign processed_values = processed_values | append: variant_value | append: ',' -%}
+
+          {% if optionCount < 3 %} 
+          <li class="variant-swatch item-swatch color-values">
+            <a class="item-swatch swatch swatch-element {% if forloop.first %} active{% endif %} color {{ colorCODE | downcase -}}" data-swatch-meta="name-{{ downcased_option }}_{{ value | replace: ' ', '_' | downcase }}"">
+              <tooltip class="tooltip d-none">{{ variant_value | replace: '-', ' ' }}</tooltip>
+
+              {%- if variant_value.swatch.image -%}
+                <!-- Swatch as image -->
+               <span
+                  class="swatch swatch--image "
+                  style="
+                    background-image: url('{{ variant_value.swatch.image | image_url: width: 50 }}');
+                    background-size: cover; background-position: center;
+                    width: 30px; height: 30px; display: inline-block;"
+                  title="{{ variant_value }}"
+                  data-option-value="{{ variant_value | escape }}"
+                  data-image="{% if variant.image %}{{ variant.image | image_url: width: 768 }}{% else %}{{ product.featured_media | image_url: width: 768 }}{% endif %}"
+                >
+                </span>  
+              {%- else -%}   
+                <span
+                  class="swatch swatch--color"
+                  style="
+                    background-color: {{ variant_value.swatch.color }};
+                    display: inline-block;"
+                  title="{{ variant_value }}"
+                  data-option-value="{{ variant_value | escape }}"
+                  data-image="{% if variant.image %}{{ variant.image | image_url: width: 768 }}{% else %}{{ product.featured_media | image_url: width: 768 }}{% endif %}"
+                >
+                </span>
+               
+              {%- endif -%}
+            </a>
+            {% assign optionCount = optionCount | plus : 1 %}
+          </li>
+            {% else %}    
+          <li class="color-values show-on-click">
+          <a class="item-swatch swatch swatch-element {% if forloop.first %} active{% endif %} color {{ colorCODE | downcase -}}" data-swatch-meta="name-{{ downcased_option }}_{{ value | replace: ' ', '_' | downcase }}"">
+              <tooltip class="tooltip d-none">{{ variant_value | replace: '-', ' ' }}</tooltip>
+
+              {%- if  variant_value.swatch.image -%}
+                 <span
+                  class="swatch swatch--image"
+                  style="
+                    background-image: url('{{ variant_value.swatch.image | image_url: width: 50 }}');
+                    background-size: cover; background-position: center;
+                    width: 30px; height: 30px; display: inline-block;"
+                  title="{{ variant_value }}"
+                  data-option-value="{{ variant_value | escape }}"
+                  data-image="{% if variant.image %}{{ variant.image | image_url: width: 768 }}{% else %}{{ product.featured_media | image_url: width: 768 }}{% endif %}"
+                >
+                </span> 
+               
+              {%- else -%}                
+                <!-- Swatch as Color -->
+                <span
+                  class="swatch swatch--color"
+                  style="
+                    background-color: {{ variant_value.swatch.color }};
+                    display: inline-block;"
+                  title="{{ variant_value }}"
+                  data-option-value="{{ variant_value | escape }}"
+                  data-image="{% if variant.image %}{{ variant.image | image_url: width: 768 }}{% else %}{{ product.featured_media | image_url: width: 768 }}{% endif %}"
+                >
+                </span>
+               
+              {%- endif -%}
+            </a>
+          {% assign optionCount = optionCount | plus : 1 %}
+          {% endif %}
+        {%- endunless -%}
+      {%- endfor -%}
+
+      {% for itemOption in product.options_with_values %}  
+  {% assign  lowercase_value = itemOption.name | downcase %}    
+  {% if lowercase_value contains 'color' %}  
+  {% if itemOption.values.size > 3 %}
+  <li class="color-values-plus">
+    <span><a href="#">+{{ itemOption.values.size | minus : 3 }}</a></span>
+  </li>
+  {% endif %}
+  {% endif %}
+  {% endfor %}
+            
+    </ul>
+{% endif %}
+
+{%- endfor -%}
+{% endif %}
+
+<style>
+  .hidden-swatch {
+  display: none;
+}
+.color-values-plus a {
+  cursor: pointer;
+  font-weight: bold;
+  padding: 5px 10px;
+  display: inline-block;
+}
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+  document.querySelectorAll('.variant-option-color').forEach(function (swatchGroup) {
+    const swatches = swatchGroup.querySelectorAll('.color-values');
+    const maxVisible = 3;
+
+    if (swatches.length > maxVisible) {
+      swatches.forEach((swatch, index) => {
+        if (index >= maxVisible) {
+          swatch.classList.add('hidden-swatch');
+          swatch.style.display = 'none';
+        }
+      });
+
+      const toggleBtn = swatchGroup.querySelector('.color-values-plus a');
+      if (toggleBtn) {
+        toggleBtn.addEventListener('click', function (e) {
+          e.preventDefault();
+          swatches.forEach(swatch => {
+            swatch.style.display = 'inline-block';
+          });
+          toggleBtn.closest('.color-values-plus').style.display = 'none';
+        });
+      }
+    }
+  });
+});
+</script>

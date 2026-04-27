@@ -1,0 +1,11 @@
+{%- assign megaBlog = block.settings.blog -%}
+{% if megaBlog != blank %}
+  <li class="blog__posts articles-wrapper contains-card contains-card--article contains-card--standard">
+{%- for article in megaBlog.articles limit: 2 -%}
+    <div class="blog__post article ">
+      {% render 'article-card',  article: article, media_aspect_ratio: 1.66, show_image: true, show_date: true, show_comment: true, show_author: true,show_excerpt: false,show_button: false, blog_style: 'mega__item-style' %}
+    </div>
+{%- endfor -%}
+  </li>
+{% endif %}
+

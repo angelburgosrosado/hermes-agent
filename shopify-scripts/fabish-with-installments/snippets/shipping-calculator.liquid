@@ -1,0 +1,48 @@
+{% unless settings.shipping_calculator == 'Disabled' %}  
+<shipping-calculator id="shipping-calculator" class="drawer-details">
+  <div id="shipping-calculator-block">
+    <p class="field">
+      <label for="address_country">Country</label>
+      <select class="dt-sc-btn" id="address_country" name="address[country]" 
+        data-default="{% if shop.customer_accounts_enabled and customer %}{{ customer.default_address.country }}{% elsif settings.shipping_calculator_default_country != '' %}{{ settings.shipping_calculator_default_country }}{% endif %}">
+        {{ country_option_tags }}
+      </select>
+    </p>
+    <p class="field" id="address_province_container" style="display:none;">
+      <label for="address_province" id="address_province_label">Province</label>
+      <select class="dt-sc-btn" id="address_province" name="address[province]" data-default="{% if shop.customer_accounts_enabled and customer and customer.default_address.province != '' %}{{ customer.default_address.province }}{% endif %}"></select>
+    </p>  
+    <p class="field">
+      <label for="address_zip">Zip/Postal Code</label>
+      <input type="text" id="address_zip" name="address[zip]"{% if shop.customer_accounts_enabled and customer %} value="{{ customer.default_address.zip }}"{% endif %} />
+    </p>
+    <p class="field">
+      <button class="get-rates btn button" type="button">{{ settings.shipping_calculator_submit_button_label | default: 'Calculate shipping' }}</button>
+    </p>
+  </div>
+ <div id="ShippingCalculatorErrors" class="hidden">
+  <div class="errors"></div>
+</div>
+  <div id="wrapper-response" class="hidden"></div>
+   <button type="button" class="close link" onclick="this.closest('details').querySelector('summary').click()">
+  {%  render 'icon-close' %}
+   </button>
+</shipping-calculator>
+{% endunless %}
+
+
+
+<style type="text/css">
+  #shipping-rates-feedback { padding:20px 0;margin:0; }
+  #shipping-calculator .select2-container{ width:100% !important; }
+  #shipping-calculator .dt-sc-btn { border: 1px solid rgba(var(--color-base-accent-1));  background-image: url("data:image/svg+xml;utf8,<svg fill='currentcolor' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>"); -webkit-appearance: none;
+  -moz-appearance: none;appearance: none;background-position: 98%;background-repeat: no-repeat;  display: flex; justify-content: space-between; }  #shipping-calculator .field label { display: block; margin: 0 0 .3em; font-size: 1em; }
+  #shipping-calculator .field input[type=text] { display: inline-block; box-sizing: border-box; margin: 0; font-size: 1em; outline: 0; -webkit-appearance: none; border: 1px solid rgba(var(--color-base-accent-1)); }  
+  #shipping-calculator #wrapper-response { clear: both; }
+  #shipping-calculator select{     width: 100%;    background-image: url("data:image/svg+xml;utf8,<svg fill='white' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>");    background-position: 98%;     background-repeat: no-repeat;     }
+  #shipping-calculator .dt-sc-btn,
+  #shipping-calculator .field input[type=text]{ min-width: calc(12rem + var(--buttons-border-width) * 2);min-height: calc(4rem + var(--buttons-border-width) * 2);padding:0 1.5rem;border-radius: var(--buttons-radius);outline: 0;box-shadow: none;width:100%;}
+  #shipping-calculator .field {display:block;}
+   #shipping-calculator .button{width:100%}
+  @media (max-width: 800px) { #shipping-calculator .field { float: none; } }
+</style>
