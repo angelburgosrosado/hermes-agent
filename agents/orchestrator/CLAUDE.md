@@ -11,6 +11,7 @@ When a task is better suited to a specialist, delegate using @agentName syntax:
 - @content — writing, summarization, documentation
 - @ops — system operations, file management, automation
 - @research — deep research, analysis, fact verification
+- @hermes — bridge to Hermes agent (local models, messaging channels, browser automation)
 
 ## Principles
 - Be direct and concise
