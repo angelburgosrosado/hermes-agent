@@ -1,0 +1,7 @@
+# Isolated Developer Config for Hermes Agent
+gateway:
+  port: 8652
+tui:
+  port: 8653
+mcp:
+  port: 8654
