@@ -102,6 +102,7 @@ _PROVIDER_MODELS: dict[str, list[str]] = {
         "openai/gpt-5.4-nano",
         "openrouter/elephant-alpha",
     ],
+    "ollama": ["qwen2.5-coder:7b", "qwen2.5-coder:14b", "qwen2.5-coder:32b", "llama3.2:3b", "llama3.1:8b"],
     "openai-codex": _codex_curated_models(),
     "copilot-acp": [
         "copilot-acp",
@@ -536,6 +537,7 @@ CANONICAL_PROVIDERS: list[ProviderEntry] = [
     ProviderEntry("opencode-zen",   "OpenCode Zen",             "OpenCode Zen (35+ curated models, pay-as-you-go)"),
     ProviderEntry("opencode-go",    "OpenCode Go",              "OpenCode Go (open models, $10/month subscription)"),
     ProviderEntry("ai-gateway",     "Vercel AI Gateway",        "Vercel AI Gateway (200+ models, pay-per-use)"),
+    ProviderEntry("ollama",         "Ollama",                   "Ollama (local models — default: http://localhost:11434)"),
 ]
 
 # Derived dicts — used throughout the codebase

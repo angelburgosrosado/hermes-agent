@@ -62,3 +62,37 @@ mini-swe-agent/
 .direnv/
 result
 website/static/api/skills-index.json
+
+# Local sub-projects and noise
+.claude/
+.wwebjs_cache/
+ChatGPT-Next-Web/
+NextChat.bak.delete-me/
+TradingAgents/
+cinematic-site-components/
+deepgram-python-sdk/
+devtools-frontend/
+leafywell-ai-health/
+leafywell-ai-update/
+leafywell-theme-manager/
+node-voice-agent/
+puppeteer/
+workspace/
+
+# Build artifacts and test results
+dist/
+playwright-report/
+test-results/
+
+# Logs and temp files
+*.log
+paperclip_dev.log
+test_error.log
+
+# Misc
+Repo.code-workspace
+claudeclaw_capabilities.html
+claudeclaw_capabilities.mp4
+claudeclaw_summary.mp4
+tunnel:*.yml
+store/

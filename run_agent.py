@@ -1379,12 +1379,19 @@ class AIAgent:
         from agent.model_metadata import MINIMUM_CONTEXT_LENGTH
         _ctx = getattr(self.context_compressor, "context_length", 0)
         if _ctx and _ctx < MINIMUM_CONTEXT_LENGTH:
-            raise ValueError(
-                f"Model {self.model} has a context window of {_ctx:,} tokens, "
-                f"which is below the minimum {MINIMUM_CONTEXT_LENGTH:,} required "
-                f"by Hermes Agent.  Choose a model with at least "
-                f"{MINIMUM_CONTEXT_LENGTH // 1000}K context, or set "
-                f"model.context_length in config.yaml to override."
+            logger.warning(
+                "Model %s has a context window of %s tokens, which is below the "
+                "hard minimum of %s required for basic Hermes operations. "
+                "Expect potential crashes or failures.",
+                self.model, f"{_ctx:,}", f"{MINIMUM_CONTEXT_LENGTH:,}"
+            )
+        elif _ctx and _ctx < 64_000:
+            logger.warning(
+                "Model %s has a context window of %s tokens. While this meets the "
+                "8K minimum, at least 64K is highly recommended for reliable "
+                "tool-calling and memory workflows. You can override this by "
+                "setting model.context_length in config.yaml.",
+                self.model, f"{_ctx:,}"
             )
 
         # Inject context engine tool schemas (e.g. lcm_grep, lcm_describe, lcm_expand)

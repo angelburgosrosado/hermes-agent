@@ -230,6 +230,14 @@ PROVIDER_REGISTRY: Dict[str, ProviderConfig] = {
         api_key_env_vars=("AI_GATEWAY_API_KEY",),
         base_url_env_var="AI_GATEWAY_BASE_URL",
     ),
+    "ollama": ProviderConfig(
+        id="ollama",
+        name="Ollama",
+        auth_type="api_key",
+        inference_base_url="http://localhost:11434/v1",
+        api_key_env_vars=("OLLAMA_API_KEY",),
+        base_url_env_var="OLLAMA_BASE_URL",
+    ),
     "opencode-zen": ProviderConfig(
         id="opencode-zen",
         name="OpenCode Zen",
@@ -928,7 +936,7 @@ def resolve_provider(
         "kilo": "kilocode", "kilo-code": "kilocode", "kilo-gateway": "kilocode",
         # Local server aliases — route through the generic custom provider
         "lmstudio": "custom", "lm-studio": "custom", "lm_studio": "custom",
-        "ollama": "custom", "vllm": "custom", "llamacpp": "custom",
+        "ollama": "ollama", "vllm": "custom", "llamacpp": "custom",
         "llama.cpp": "custom", "llama-cpp": "custom",
     }
     normalized = _PROVIDER_ALIASES.get(normalized, normalized)
